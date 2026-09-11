@@ -32,51 +32,89 @@
   }
   .aquarium-bg{position:fixed; inset:0; z-index:0; overflow:hidden;
     background:linear-gradient(180deg, #0a3348 0%, #062231 55%, #041722 100%);}
+  .aquarium-bg::before{
+    content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+    background:radial-gradient(ellipse 80% 40% at 50% 0%, rgba(180,230,255,.16) 0%, transparent 60%);
+  }
+  .aquarium-bg::after{
+    content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+    background:radial-gradient(ellipse 90% 90% at 50% 50%, transparent 55%, rgba(0,4,8,.45) 100%);
+  }
   #tank{width:100%; height:100%; display:block;}
 
+  .waterline{
+    position:absolute; top:0; left:0; right:0; height:34px; z-index:1; pointer-events:none;
+    background:linear-gradient(180deg, rgba(210,240,255,.28) 0%, rgba(210,240,255,.08) 55%, transparent 100%);
+    border-bottom:1px solid rgba(210,240,255,.35);
+  }
+
+  .tankFrame{
+    position:fixed; inset:0; z-index:5; pointer-events:none;
+    border:12px solid #1b1f26;
+    border-image:linear-gradient(160deg, #454b54, #14171b 45%, #2a2e35 60%, #08090b) 1;
+    box-shadow:
+      inset 0 0 0 2px rgba(255,255,255,.07),
+      inset 0 0 28px rgba(0,0,0,.55);
+  }
+  .rivet{
+    position:absolute; width:9px; height:9px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #8a919c, #2c2f35 70%);
+    box-shadow:0 1px 2px rgba(0,0,0,.6);
+  }
+
   .hud-top{
-    position:fixed; top:0; left:0; right:0; z-index:2;
-    max-width:460px; margin:0 auto;
-    padding:12px 12px 8px;
-    background:linear-gradient(180deg, rgba(4,7,12,.55) 0%, rgba(4,7,12,0) 100%);
-    text-shadow:0 1px 5px rgba(0,0,0,.7);
+    position:fixed; top:34px; left:16px; right:16px; z-index:2;
+    max-width:428px; margin:0 auto;
+    padding:9px 12px 8px;
+    background:linear-gradient(180deg, #2a323b 0%, #1a2027 100%);
+    border:1px solid #0a0e12; border-radius:9px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 3px 8px rgba(0,0,0,.4);
+    text-shadow:none;
   }
   .hud-titlerow{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;}
-  .hud-title{font-size:.92rem; font-weight:700; color:var(--accent);}
+  .hud-title{font-size:.86rem; font-weight:700; color:var(--accent); letter-spacing:.03em;}
   .iconBtn{
-    background:var(--panel); border:1px solid var(--line); border-radius:10px;
-    font-size:1rem; padding:5px 9px; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
-    text-shadow:none;
+    background:linear-gradient(180deg, #2f3947 0%, #1c232c 100%); border:1px solid #0a0e12; border-radius:8px;
+    font-size:1rem; padding:5px 9px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
   }
   .hud-pills{display:flex; gap:6px; margin-bottom:6px;}
   .pill{
-    background:var(--panel); border:1px solid var(--line); border-radius:20px;
-    padding:4px 10px; font-size:.78rem; font-weight:700;
-    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    background:#0d1116; border:1px solid #232b34; border-radius:6px;
+    padding:4px 10px; font-size:.78rem; font-weight:700; color:#8fe8d8;
+    font-family:'Courier New', monospace; letter-spacing:.02em;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.6);
   }
   .pill.gold{color:var(--gold);}
-  .hud-line{font-size:.68rem; color:var(--text); opacity:.9; margin-top:2px;
+  .hud-line{font-size:.68rem; color:var(--text); opacity:.85; margin-top:2px;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .hud-line.muted{color:var(--muted);}
+  .hud-line.muted{color:var(--muted); text-decoration:underline dotted; text-underline-offset:2px;}
 
   .actionGrid{
     position:fixed; left:50%; bottom:0; transform:translateX(-50%); z-index:2;
-    width:100%; max-width:460px; box-sizing:border-box;
+    width:100%; max-width:444px; box-sizing:border-box;
     display:grid; grid-template-columns:1fr 1fr; gap:5px;
-    padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+    padding:6px 16px calc(16px + env(safe-area-inset-bottom));
     background:linear-gradient(0deg, rgba(4,7,12,.75) 40%, rgba(4,7,12,0) 100%);
   }
   .abtn{
-    background:var(--panel2); border:1px solid var(--line); border-radius:10px;
-    color:var(--text); font-size:.72rem; font-weight:600; padding:7px 6px;
+    background:linear-gradient(180deg, #223347 0%, #16222f 100%);
+    border:1px solid #0a121a; border-radius:8px;
+    color:var(--text); font-size:.72rem; font-weight:600; padding:7px 6px 7px 16px;
     text-align:center; line-height:1.2;
-    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.12), inset 0 -2px 3px rgba(0,0,0,.4);
   }
-  .abtn.primary{background:linear-gradient(135deg, var(--teal), #2fa393); color:#04211c; border:none;}
-  .abtn.gold{background:linear-gradient(135deg, var(--gold), #c78e2e); color:#241a02; border:none; grid-column:1/-1;}
-  .abtn:disabled{opacity:.35;}
+  .abtn.primary{background:linear-gradient(180deg, #5fe4cf 0%, #2a8f7e 100%); color:#04211c; border-color:#0a3d34;}
+  .abtn.gold{background:linear-gradient(180deg, #ffdd8a 0%, #c78e2e 100%); color:#241a02; border-color:#5c3f0f; grid-column:1/-1;}
+  .abtn:disabled{opacity:.4;}
   .abtn .sub{display:block; font-weight:500; font-size:.64rem; margin-top:1px; opacity:.85;}
   .abtn{position:relative;}
+  .abtn::before{
+    content:''; position:absolute; top:50%; left:6px; transform:translateY(-50%);
+    width:6px; height:6px; border-radius:50%;
+    background:#3a4a5a; box-shadow:inset 0 0 1px rgba(0,0,0,.6);
+  }
+  .abtn:not(:disabled)::before{ background:#5fffcf; box-shadow:0 0 4px #5fffcf, 0 0 8px #5fffcf; }
   .infoDot{
     position:absolute; top:2px; right:2px; width:15px; height:15px; border-radius:50%;
     background:rgba(255,255,255,.18); color:inherit; font-size:.6rem; line-height:15px;
@@ -92,7 +130,17 @@
     0%,100%{ opacity:1; }
     50%{ opacity:.6; }
   }
+  .fishSway{ animation-name:fishSway; animation-timing-function:ease-in-out; animation-iteration-count:infinite; transform-box:fill-box; transform-origin:50% 50%; }
+  @keyframes fishSway{
+    0%,100%{ transform:rotate(-4deg); }
+    50%{ transform:rotate(4deg); }
+  }
   .feeder-line{stroke-dasharray:3 3;}
+  .feederGlow{animation:feederPulse 2.6s ease-in-out infinite; transform-box:fill-box; transform-origin:50% 50%;}
+  @keyframes feederPulse{
+    0%,100%{ opacity:1; transform:scale(1); }
+    50%{ opacity:.75; transform:scale(1.12); }
+  }
   .rays{position:absolute; inset:0; z-index:1; opacity:.12; pointer-events:none;
     background:repeating-linear-gradient(100deg, rgba(255,255,255,.5) 0 6px, transparent 6px 40px);
     animation:shimmer 7s linear infinite;}
@@ -195,12 +243,28 @@
     position:absolute; top:10px; right:10px; background:none; border:none;
     color:var(--muted); font-size:1rem; padding:4px 8px; margin:0;
   }
-  .journalTabs{display:flex; gap:4px; margin:10px 0 14px; flex-wrap:wrap;}
+  .journalTabs{display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin:12px 0 16px;}
   .tabBtn{
-    flex:1; min-width:70px; padding:7px 4px; border-radius:9px; border:1px solid var(--line);
+    flex:1 1 28%; min-width:0; padding:8px 4px; border-radius:9px; border:1px solid var(--line);
     background:var(--panel2); color:var(--muted); font-size:.7rem; font-weight:600;
+    text-align:center; white-space:normal; line-height:1.2;
   }
   .tabBtn.active{background:var(--teal); color:#04211c; border:none;}
+  .questCard{
+    background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:10px;
+    text-align:center;
+  }
+  .questCard .qtitle{font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px;}
+  .questCard .qname{font-size:.95rem; font-weight:700; margin-bottom:10px;}
+  .questBarOuter{background:var(--bg); border:1px solid var(--line); border-radius:20px; height:14px; overflow:hidden;}
+  .questBarInner{background:linear-gradient(90deg, var(--teal), #2fa393); height:100%; transition:width .3s;}
+  .questCard .qnum{font-size:.72rem; color:var(--muted); margin-top:6px;}
+  .questDots{display:flex; justify-content:center; gap:8px; margin:14px 0;}
+  .questDot{
+    width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:1rem; background:var(--panel2); border:1px solid var(--line);
+  }
+  .questDot.done{background:var(--teal); border:none;}
   .metaRow{
     display:flex; align-items:center; justify-content:space-between; gap:8px;
     background:var(--panel2); border:1px solid var(--line); border-radius:11px; padding:9px 11px; margin-bottom:8px;
@@ -229,9 +293,17 @@
 </head>
 <body>
 <div class="aquarium-bg">
+  <div class="waterline"></div>
   <div class="rays"></div>
   <div class="bubbles" id="bubbles"></div>
   <svg id="tank" viewBox="0 0 300 300" preserveAspectRatio="xMidYMid meet"></svg>
+</div>
+
+<div class="tankFrame">
+  <span class="rivet" style="top:10px; left:10px;"></span>
+  <span class="rivet" style="top:10px; right:10px;"></span>
+  <span class="rivet" style="bottom:10px; left:10px;"></span>
+  <span class="rivet" style="bottom:10px; right:10px;"></span>
 </div>
 
 <div class="hud-top">
@@ -264,12 +336,14 @@
     <button class="closeBtn" id="journalCloseBtn">✕</button>
     <h2>Journal</h2>
     <div class="journalTabs">
-      <button class="tabBtn active" id="tabCompendiumBtn">Compendium</button>
+      <button class="tabBtn active" id="tabQuestsBtn">Quêtes</button>
+      <button class="tabBtn" id="tabCompendiumBtn">Espèces</button>
       <button class="tabBtn" id="tabRecordsBtn">Records</button>
       <button class="tabBtn" id="tabFleetBtn">Flotte</button>
       <button class="tabBtn" id="tabMetaBtn">Méta</button>
     </div>
-    <div id="compendiumPane"></div>
+    <div id="questsPane"></div>
+    <div id="compendiumPane" style="display:none;"></div>
     <div id="recordsPane" style="display:none;"></div>
     <div id="fleetPane" style="display:none;">
       <div class="fleet" id="fleet"></div>
@@ -301,6 +375,81 @@ const OFFLINE_CAP_SEC = 7200;
 const FISH_NAMES = ['Guppy','Tétra néon','Poisson rouge','Danio zébré','Poisson clown','Poisson-ange',
   'Poisson-papillon','Poisson-chirurgien','Poisson-lion','Poisson-globe','Mérou','Barracuda',
   'Requin-corail','Poulpe','Raie manta','Créature abyssale légendaire'];
+
+const FISH_INFO = [
+  { size:'2-4 cm', fact:"Petit poisson coloré, souvent le tout premier qu'on installe dans un aquarium." },
+  { size:'3-5 cm', fact:'Bande fluorescente bleu et rouge, ne se déplace presque jamais seul.' },
+  { size:'5-15 cm', fact:'Increvable et vorace, symbole des tout premiers bocaux de salon.' },
+  { size:'4-6 cm', fact:'Rayures horizontales et nage nerveuse, star des laboratoires de recherche.' },
+  { size:'7-11 cm', fact:"Vit collé à son anémone toute sa vie et ne la fuit jamais." },
+  { size:'15-25 cm', fact:'Nageoires en voile, il glisse dans l\'eau plus qu\'il ne nage.' },
+  { size:'12-20 cm', fact:'Museau fin taillé pour picorer entre les branches de corail.' },
+  { size:'20-38 cm', fact:'Porte une lame tranchante et rétractable près de la queue.' },
+  { size:'30-38 cm', fact:'Ses nageoires en éventail sont venimeuses au moindre contact.' },
+  { size:'15-30 cm (jusqu\'à 60 gonflé)', fact:"Avale de l'eau pour doubler de volume face à un prédateur." },
+  { size:'50 cm - 2 m', fact:'Peut avaler une proie presque aussi grosse que lui.' },
+  { size:'60 cm - 1,8 m', fact:'Mâchoire acérée et pointe de vitesse pour chasser en embuscade.' },
+  { size:'1 - 1,6 m', fact:'Timide malgré son nom, il préfère les fonds sableux le jour.' },
+  { size:'0,3 - 3 m (bras compris)', fact:'Trois cœurs, du sang bleu, et une intelligence redoutable.' },
+  { size:'3 - 7 m d\'envergure', fact:"Peut peser plus d'une tonne malgré son vol sous-marin très gracieux." },
+  { size:'inconnue', fact:"Personne ne l'a jamais vue entière. On sait juste qu'elle brille dans le noir." },
+];
+function fishInfo(t){ return FISH_INFO[t-1] || { size:'hors normes', fact:'Une espèce si rare que même les carnets scientifiques restent muets à son sujet.' }; }
+
+function rarityLabel(t){
+  if (t<=3) return 'Commun';
+  if (t<=6) return 'Peu commun';
+  if (t<=9) return 'Rare';
+  if (t<=12) return 'Épique';
+  if (t<=15) return 'Légendaire';
+  return 'Mythique';
+}
+function rarityColor(t){
+  if (t<=3) return '#9fb6c4';
+  if (t<=6) return '#4fd8c4';
+  if (t<=9) return '#5b93e0';
+  if (t<=12) return '#c77dff';
+  if (t<=15) return '#ffcf6b';
+  return '#ff6b9d';
+}
+
+// Système de maîtrise : 3 défis par espèce, indépendants des seeds du bassin
+function masteryTarget(tier, level){
+  if (level === 1) return 3; // posséder 3 simultanément
+  if (level === 2) return Math.ceil(200 * tierValue(tier)); // perles générées par cette espèce
+  return Math.max(5, 60 - tier*3); // fusions effectuées depuis ce palier
+}
+function masteryReward(level){ return level===3 ? 6 : level+1; }
+function masteryProgress(tier, level){
+  if (level === 1) return state.stats.maxSimultaneousByTier[tier] || 0;
+  if (level === 2) return Math.floor(state.stats.coinsByTier[tier] || 0);
+  return state.stats.fusionsByTier[tier] || 0;
+}
+function masteryDone(tier, level){
+  return state.masteryUnlocked.includes(`${tier}_${level}`);
+}
+function isFullyMastered(tier){
+  return masteryDone(tier,1) && masteryDone(tier,2) && masteryDone(tier,3);
+}
+
+function checkMastery(){
+  for (let t=1; t<=16; t++){
+    if (!state.compendium.includes(t)) continue;
+    for (let lvl=1; lvl<=3; lvl++){
+      const key = `${t}_${lvl}`;
+      if (!state.masteryUnlocked.includes(key) && masteryProgress(t,lvl) >= masteryTarget(t,lvl)){
+        state.masteryUnlocked.push(key);
+        const reward = masteryReward(lvl);
+        state.rarePearls += reward;
+        showToast(`⭐ Maîtrise ${fishName(t)} niv.${lvl} ! +${reward} 💎`, 3200);
+        if (lvl===3 && isFullyMastered(t)){
+          state.rarePearls += 5;
+          showToast(`🏅 Maître ${fishName(t)} ! +5 💎 bonus`, 3600);
+        }
+      }
+    }
+  }
+}
 
 const BIOMES = [
   {name:'Bassin tropical', sides:0, accent:'#4fd8c4', bg:'#0a3348'},
@@ -341,7 +490,10 @@ function defaultState(){
     rarePearls: 0,
     meta: { speedLevel:0, startFishLevel:0, startFeederLevel:0, fuseDiscountLevel:0,
       bonusFuseChanceLevel:0, passiveIncomeLevel:0, fishCostDiscountLevel:0, oxygenDurationLevel:0, offlineMultLevel:0 },
-    stats: { totalFusions:0, goldenCaught:0, totalFishBoughtLifetime:0, totalFeedersLifetime:0, oxygenUsedCount:0 },
+    stats: { totalFusions:0, goldenCaught:0, totalFishBoughtLifetime:0, totalFeedersLifetime:0, oxygenUsedCount:0,
+      fusionsByTier:{}, coinsByTier:{}, maxSimultaneousByTier:{} },
+    discoveryDates: {},
+    masteryUnlocked: [],
     achievementsUnlocked: [],
     nextGoldenEventAt: Date.now() + 20000,
     lastSave: Date.now(),
@@ -503,6 +655,7 @@ function discoverTier(t){
     state.compendium.push(t);
     state.compendium.sort((a,b)=>a-b);
     state.rarePearls += 1;
+    state.discoveryDates[t] = Date.now();
     showToast(`Nouvelle espèce découverte : ${fishName(t)} ! +1 💎`);
   }
   if (t > state.records.biggestTier) state.records.biggestTier = t;
@@ -670,6 +823,7 @@ function simulate(dt){
         buildFishLayer();
       }
       groupEarned += base;
+      state.stats.coinsByTier[f.tier] = (state.stats.coinsByTier[f.tier]||0) + base;
     }
     earned += groupEarned;
     if (group.length > 1) questProgress('simultaneous', 1);
@@ -756,8 +910,10 @@ function buildTankStatic(){
     const pOut = positionAtT(fdr.t, biome.sides, R_OUT, 0);
     html += `<line class="feeder-line" x1="${pIn.x}" y1="${pIn.y}" x2="${pOut.x}" y2="${pOut.y}" stroke="${biome.accent}" stroke-width="1.5" opacity="0.7"/>`;
     const mid = positionAtT(fdr.t, biome.sides, R_OUT+12, 0);
-    html += `<g>
-      <circle cx="${mid.x}" cy="${mid.y}" r="5" fill="${biome.accent}" opacity="0.9"/>
+    html += `<g class="feederGlow">
+      <circle cx="${mid.x}" cy="${mid.y}" r="9" fill="${biome.accent}" opacity="0.16"/>
+      <circle cx="${mid.x}" cy="${mid.y}" r="5" fill="${biome.accent}" opacity="0.95"/>
+      <circle cx="${mid.x}" cy="${mid.y}" r="2.2" fill="#ffffff" opacity="0.55"/>
       <circle cx="${mid.x-4}" cy="${mid.y+3}" r="2" fill="${biome.accent}" opacity="0.6"/>
       <circle cx="${mid.x+4}" cy="${mid.y-2}" r="2" fill="${biome.accent}" opacity="0.6"/>
     </g>`;
@@ -800,7 +956,8 @@ function standardFishMarkup(t, size, c, cl){
         <animateTransform attributeName="transform" type="rotate" values="-16 0 0;16 0 0;-16 0 0" dur="0.55s" repeatCount="indefinite"/>
       </polygon>
     </g>
-    <ellipse cx="${size*0.1}" cy="${-size*0.35}" rx="${size*0.5}" ry="${size*0.22}" fill="#ffffff" opacity="0.22"/>
+    <ellipse cx="${size*0.1}" cy="${-size*0.35}" rx="${size*0.5}" ry="${size*0.22}" fill="#ffffff" opacity="0.3"/>
+    <ellipse cx="${-size*0.5}" cy="${-size*0.15}" rx="${size*0.18}" ry="${size*0.09}" fill="#ffffff" opacity="0.18"/>
     <circle cx="${size*0.65}" cy="${-size*0.12}" r="${Math.max(1,size*0.13)}" fill="#04211c"/>
   `;
 }
@@ -874,7 +1031,9 @@ function buildFishLayer(){
     g.setAttribute('id','fish'+i);
     g.setAttribute('class','fish');
     const size = 6 + Math.min(7, f.tier*0.5);
-    g.innerHTML = fishMarkup(f, size);
+    const delay = (i % 7) * -0.31;
+    const dur = 2.1 + (i % 5)*0.18;
+    g.innerHTML = `<g class="fishSway" style="animation-delay:${delay}s; animation-duration:${dur}s;">${fishMarkup(f, size)}</g>`;
     layer.appendChild(g);
   });
   positionFish();
@@ -1146,6 +1305,7 @@ function fuseGroup(tier, type){
   }
   state.fish.push({tier:newTier, t:avgT, type});
   state.stats.totalFusions++;
+  state.stats.fusionsByTier[tier] = (state.stats.fusionsByTier[tier]||0) + 1;
   questProgress('fuse', 1);
   if (state.currentQuest && state.currentQuest.type === 'reachtier' && newTier >= state.currentQuest.tierGoal){
     questProgress('reachtier', 1);
@@ -1227,11 +1387,21 @@ function loop(ts){
 }
 
 let tickCounter = 0;
+function updateMaxSimultaneous(){
+  const counts = {};
+  for (const f of state.fish) counts[f.tier] = (counts[f.tier]||0) + 1;
+  for (const t in counts){
+    if (counts[t] > (state.stats.maxSimultaneousByTier[t]||0)) state.stats.maxSimultaneousByTier[t] = counts[t];
+  }
+}
+
 function uiTick(){
   tickCounter++;
   expireGoldenIfNeeded();
   tickGoldenEvent();
+  updateMaxSimultaneous();
   checkAchievements();
+  checkMastery();
   render();
   dirty = true;
   if (tickCounter % 3 === 0){ saveState(); }
@@ -1274,6 +1444,11 @@ async function loadState(){
       state.streak = Object.assign(defaultState().streak, loaded.streak||{});
       state.meta = Object.assign(defaultState().meta, loaded.meta||{});
       state.stats = Object.assign(defaultState().stats, loaded.stats||{});
+      state.stats.fusionsByTier = loaded.stats && loaded.stats.fusionsByTier || {};
+      state.stats.coinsByTier = loaded.stats && loaded.stats.coinsByTier || {};
+      state.stats.maxSimultaneousByTier = loaded.stats && loaded.stats.maxSimultaneousByTier || {};
+      state.discoveryDates = loaded.discoveryDates || {};
+      state.masteryUnlocked = loaded.masteryUnlocked || [];
       state.achievementsUnlocked = loaded.achievementsUnlocked || [];
       state.nextGoldenEventAt = loaded.nextGoldenEventAt || (Date.now() + 20000);
       state.rarePearls = loaded.rarePearls || 0;
@@ -1314,21 +1489,45 @@ function spawnBubbles(){
   }
 }
 
+function masteryLine(tier, level, label){
+  const done = masteryDone(tier, level);
+  const prog = masteryProgress(tier, level);
+  const target = masteryTarget(tier, level);
+  const progText = level===2 ? `${fmt(Math.min(prog,target))}/${fmt(target)}` : `${Math.min(prog,target)}/${target}`;
+  return `${done?'✅':'🔒'} ${label} : ${done ? 'fait' : progText}`;
+}
+
 function renderCompendium(){
   const pane = document.getElementById('compendiumPane');
   const maxNamed = FISH_NAMES.length;
-  let html = `<div class="compendiumGrid">`;
+  const foundCount = state.compendium.filter(t=>t<=maxNamed).length;
+  let html = `<p style="color:var(--muted); font-size:.75rem; margin:0 0 12px; text-align:center;">
+    ${foundCount}/${maxNamed} espèces découvertes${state.compendium.some(t=>t>maxNamed) ? ' + espèces légendaires au-delà' : ''}
+  </p>`;
   for (let t=1; t<=maxNamed; t++){
     const found = state.compendium.includes(t);
-    html += `<div class="compendiumItem ${found?'':'locked'}">
-      <div>${found ? '🐟' : '❓'}</div>
-      <div class="cname">${found ? fishName(t) : '???'}</div>
-    </div>`;
+    if (found){
+      const info = fishInfo(t);
+      const dateStr = state.discoveryDates[t] ? new Date(state.discoveryDates[t]).toLocaleDateString('fr-FR') : '—';
+      const mastered = isFullyMastered(t);
+      html += `<div class="metaRow" style="align-items:flex-start;">
+        <div style="width:100%;">
+          <div class="mname">${mastered?'🏅':'🐟'} ${fishName(t)} <span style="color:${rarityColor(t)}; font-weight:600;">· ${rarityLabel(t)}</span></div>
+          <div class="mdesc">Palier ${t} · Taille : ${info.size} · découvert le ${dateStr}</div>
+          <div class="mdesc" style="margin-top:3px; font-style:italic;">${info.fact}</div>
+          <div class="mdesc" style="margin-top:6px; line-height:1.6;">
+            ${masteryLine(t,1,'3 simultanés')}<br>
+            ${masteryLine(t,2,'perles générées')}<br>
+            ${masteryLine(t,3,'fusions')}
+          </div>
+        </div>
+      </div>`;
+    } else {
+      html += `<div class="metaRow" style="opacity:.4;">
+        <div class="mname">🔒 Espèce non découverte</div>
+      </div>`;
+    }
   }
-  html += `</div><p style="color:var(--muted); font-size:.75rem; margin-top:12px;">
-    ${state.compendium.filter(t=>t<=maxNamed).length}/${maxNamed} espèces découvertes
-    ${state.compendium.some(t=>t>maxNamed) ? ' + espèces légendaires au-delà' : ''}
-  </p>`;
   pane.innerHTML = html;
 }
 
@@ -1390,7 +1589,30 @@ function renderMeta(){
   });
 }
 
+function renderQuests(){
+  const pane = document.getElementById('questsPane');
+  const q = state.currentQuest;
+  const pct = q ? Math.min(100, Math.round(100*q.progress/q.target)) : 0;
+  let dots = '';
+  for (let i=0;i<QUESTS_PER_BASSIN;i++){
+    dots += `<div class="questDot ${i < state.questsCompletedInBassin ? 'done' : ''}">${i < state.questsCompletedInBassin ? '✅' : '⬜'}</div>`;
+  }
+  pane.innerHTML = `
+    <div class="recordRow"><span>Objectif du bassin</span><span class="rval">palier ${fusionTarget()} (${fishName(fusionTarget())})</span></div>
+    <div class="recordRow" style="border-bottom:none;"><span>Quêtes obligatoires</span><span class="rval">${state.questsCompletedInBassin}/${QUESTS_PER_BASSIN}</span></div>
+    <div class="questDots">${dots}</div>
+    <div class="questCard">
+      <div class="qtitle">Quête en cours</div>
+      <div class="qname">${q ? q.labelText : '—'}</div>
+      <div class="questBarOuter"><div class="questBarInner" style="width:${pct}%;"></div></div>
+      <div class="qnum">${q ? Math.min(q.progress, q.target) : 0} / ${q ? q.target : 0}</div>
+    </div>
+    <p style="color:var(--muted); font-size:.72rem; text-align:center;">Dès qu'une quête est validée, la suivante démarre automatiquement. Il faut valider les ${QUESTS_PER_BASSIN} ET atteindre le palier cible pour passer au bassin suivant.</p>
+  `;
+}
+
 function openJournal(){
+  renderQuests();
   renderCompendium();
   renderRecords();
   renderMeta();
@@ -1398,8 +1620,8 @@ function openJournal(){
 }
 
 function switchJournalTab(tab){
-  const tabs = { compendium: 'tabCompendiumBtn', records: 'tabRecordsBtn', fleet: 'tabFleetBtn', meta: 'tabMetaBtn' };
-  const panes = { compendium: 'compendiumPane', records: 'recordsPane', fleet: 'fleetPane', meta: 'metaPane' };
+  const tabs = { quests: 'tabQuestsBtn', compendium: 'tabCompendiumBtn', records: 'tabRecordsBtn', fleet: 'tabFleetBtn', meta: 'tabMetaBtn' };
+  const panes = { quests: 'questsPane', compendium: 'compendiumPane', records: 'recordsPane', fleet: 'fleetPane', meta: 'metaPane' };
   for (const k in tabs){
     document.getElementById(tabs[k]).classList.toggle('active', k === tab);
     document.getElementById(panes[k]).style.display = (k === tab) ? 'block' : 'none';
@@ -1431,6 +1653,8 @@ async function init(){
   document.getElementById('oxygenBtn').onclick = useOxygen;
   document.getElementById('overlayBtn').onclick = startNewBassin;
   document.getElementById('journalBtn').onclick = openJournal;
+  document.getElementById('questText').onclick = () => { openJournal(); switchJournalTab('quests'); };
+  document.getElementById('tabQuestsBtn').onclick = () => switchJournalTab('quests');
   document.getElementById('journalCloseBtn').onclick = () => {
     document.getElementById('journalOverlay').classList.remove('show');
   };
