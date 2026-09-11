@@ -374,8 +374,8 @@
 
 <script>
 const CX=150, CY=150, R_OUT=112, R_IN=70, R_MID=(112+70)/2;
-const K = 0.5; // pacing global des revenus
-const BASE_SPEED = 20; // degrés/seconde de base — un tour complet dure ~18s au lieu de ~5s
+const K = 1.8; // pacing global des revenus
+const BASE_SPEED = 25; // degrés/seconde de base — un tour complet dure ~14s
 const OFFLINE_CAP_SEC = 7200;
 
 const FISH_NAMES = ['Guppy','Tétra néon','Poisson rouge','Danio zébré','Poisson clown','Poisson-ange',
@@ -761,7 +761,7 @@ function costCapacity(){ return Math.ceil(500 * Math.pow(3.2, state.capacityLeve
 function costNewFeeder(){ return Math.ceil(180 * Math.pow(2.2, state.feeders.length-1) * state.prestige.costMult); }
 function costFuse(t){
   const fuseDiscount = 1 - state.meta.fuseDiscountLevel*0.05;
-  return Math.ceil(35 * Math.pow(2.3, t-1) * fuseDiscount);
+  return Math.ceil(20 * Math.pow(2.3, t-1) * fuseDiscount);
 }
 function maxFish(){ return Math.min(40, 10 + state.bassinIndex*2 + state.capacityLevel*2); }
 function maxFeeders(){ const b = biomeFor(state.bassinIndex); return b.sides===0 ? 8 : Math.min(12, b.sides*2); }
