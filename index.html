@@ -491,7 +491,10 @@ function defaultState(){
     meta: { speedLevel:0, startFishLevel:0, startFeederLevel:0, fuseDiscountLevel:0,
       bonusFuseChanceLevel:0, passiveIncomeLevel:0, fishCostDiscountLevel:0, oxygenDurationLevel:0, offlineMultLevel:0 },
     stats: { totalFusions:0, goldenCaught:0, totalFishBoughtLifetime:0, totalFeedersLifetime:0, oxygenUsedCount:0,
-      fusionsByTier:{}, coinsByTier:{}, maxSimultaneousByTier:{} },
+      fusionsByTier:{}, coinsByTier:{}, maxSimultaneousByTier:{},
+      totalCoinsEarnedLifetime:0, maxFishCountEver:0, totalUpgradesBought:0, lastFusionTimestamps:[],
+      everHadOneFish:false, everChainReaction:false, everPerfectFusion:false, everWaited60s:false,
+      everOffline1h:false, everOffline8h:false, everOfflineMillion:false, everOffline3days:false },
     discoveryDates: {},
     masteryUnlocked: [],
     achievementsUnlocked: [],
@@ -514,6 +517,27 @@ const ACHIEVEMENTS = [
   { id:'fifty_fish', name:'Marchand de poissons', desc:'Achète 50 poissons au total', reward:4, check:(s)=>s.stats.totalFishBoughtLifetime>=50 },
   { id:'fifteen_feeders', name:'Architecte de bassin', desc:'Pose 15 mangeoires au total', reward:4, check:(s)=>s.stats.totalFeedersLifetime>=15 },
   { id:'twenty_oxygen', name:'Respiration profonde', desc:'Utilise la bulle d\'oxygène 20 fois', reward:4, check:(s)=>s.stats.oxygenUsedCount>=20 },
+  { id:'hundred_fusions', name:'Éleveur confirmé', desc:'Réalise 100 fusions au total', reward:6, check:(s)=>s.stats.totalFusions>=100 },
+  { id:'five_hundred_fusions', name:'Fusionneur compulsif', desc:'Réalise 500 fusions au total', reward:10, check:(s)=>s.stats.totalFusions>=500 },
+  { id:'thousand_fusions', name:'Maître aquariophile', desc:'Réalise 1000 fusions au total', reward:15, check:(s)=>s.stats.totalFusions>=1000 },
+  { id:'coins_1k', name:'Première fortune', desc:'Gagne 1000 perles au total', reward:2, check:(s)=>s.stats.totalCoinsEarnedLifetime>=1000 },
+  { id:'coins_100k', name:'Petit capital', desc:'Gagne 100 000 perles au total', reward:4, check:(s)=>s.stats.totalCoinsEarnedLifetime>=100000 },
+  { id:'coins_1m', name:'Millionnaire', desc:'Gagne 1 million de perles au total', reward:7, check:(s)=>s.stats.totalCoinsEarnedLifetime>=1000000 },
+  { id:'coins_1b', name:'Ça devient indécent', desc:'Gagne 1 milliard de perles au total', reward:12, check:(s)=>s.stats.totalCoinsEarnedLifetime>=1000000000 },
+  { id:'bassin2', name:'Toujours plus grand', desc:'Débloque un nouveau bassin', reward:2, check:(s)=>s.bassinIndex>=2 },
+  { id:'bassin5', name:'Petit bassin, grandes ambitions', desc:'Atteins le bassin 5', reward:5, check:(s)=>s.bassinIndex>=5 },
+  { id:'five_species', name:'Collectionneur', desc:'Découvre 5 espèces', reward:3, check:(s)=>s.compendium.length>=5 },
+  { id:'ten_species', name:'Passionné', desc:'Découvre 10 espèces', reward:5, check:(s)=>s.compendium.length>=10 },
+  { id:'ten_fish_atonce', name:'Ça commence à grouiller', desc:'Possède 10 poissons en même temps dans un bassin', reward:3, check:(s)=>s.stats.maxFishCountEver>=10 },
+  { id:'last_survivor', name:'Le dernier survivant', desc:'N\'avoir qu\'un seul poisson dans le bassin', reward:3, check:(s)=>s.stats.everHadOneFish },
+  { id:'hundred_upgrades', name:'Je ne regarde plus le prix', desc:'Achète 100 améliorations au total', reward:6, check:(s)=>s.stats.totalUpgradesBought>=100 },
+  { id:'chain_reaction', name:'Réaction en chaîne', desc:'Effectue 3 fusions en moins de 10 secondes', reward:4, check:(s)=>s.stats.everChainReaction },
+  { id:'perfect_fusion', name:'Fusion parfaite', desc:'Fusionne alors que le bassin est entièrement occupé', reward:4, check:(s)=>s.stats.everPerfectFusion },
+  { id:'patient', name:'Pas touche !', desc:'Laisse 3 poissons identiques prêts à fusionner pendant 60 secondes', reward:3, check:(s)=>s.stats.everWaited60s },
+  { id:'offline_1h', name:'Je reviendrai demain', desc:'Gagne des perles après 1h d\'absence', reward:2, check:(s)=>s.stats.everOffline1h },
+  { id:'offline_8h', name:'Bonne nuit les poissons', desc:'Gagne des perles après 8h d\'absence', reward:4, check:(s)=>s.stats.everOffline8h },
+  { id:'offline_million', name:'Ils ont travaillé pendant que je dormais', desc:'Récupère 1 million de perles en une fois hors-ligne', reward:8, check:(s)=>s.stats.everOfflineMillion },
+  { id:'offline_3days', name:'Absence prolongée', desc:'Reviens après 3 jours d\'absence', reward:6, check:(s)=>s.stats.everOffline3days },
 ];
 
 function checkAchievements(){
@@ -834,10 +858,10 @@ function simulate(dt){
       spawnRipple(p.x, p.y, biome.accent);
     }
   }
-  if (earned > 0){ state.coins += earned; questProgress('perles', earned); }
+  if (earned > 0){ state.coins += earned; state.stats.totalCoinsEarnedLifetime += earned; questProgress('perles', earned); }
 
   const passive = passiveIncomePerSec() * dt;
-  if (passive > 0){ state.coins += passive; questProgress('perles', passive); }
+  if (passive > 0){ state.coins += passive; state.stats.totalCoinsEarnedLifetime += passive; questProgress('perles', passive); }
 }
 
 function spawnRipple(x, y, color){
@@ -1236,6 +1260,7 @@ function buySpeed(){
   if (state.coins < c) return;
   state.coins -= c;
   state.speedLevel++;
+  state.stats.totalUpgradesBought++;
   dirty = true;
   render();
 }
@@ -1245,6 +1270,7 @@ function buyFeederBoost(){
   if (state.coins < c) return;
   state.coins -= c;
   state.feederValueLevel++;
+  state.stats.totalUpgradesBought++;
   dirty = true;
   render();
 }
@@ -1254,6 +1280,7 @@ function buyIncomeMult(){
   if (state.coins < c) return;
   state.coins -= c;
   state.incomeMultLevel++;
+  state.stats.totalUpgradesBought++;
   dirty = true;
   render();
 }
@@ -1264,6 +1291,7 @@ function buyCapacity(){
   if (state.coins < c) return;
   state.coins -= c;
   state.capacityLevel++;
+  state.stats.totalUpgradesBought++;
   dirty = true;
   render();
 }
@@ -1282,6 +1310,7 @@ function addFeeder(){
   }
   state.feeders.push({t: bestMid % 1});
   state.stats.totalFeedersLifetime++;
+  state.stats.totalUpgradesBought++;
   dirty = true;
   buildTankStatic();
   render();
@@ -1295,6 +1324,7 @@ function fuseGroup(tier, type){
   if (idxs.length < 3) return false;
   const c = costFuse(tier);
   if (state.coins < c) return false;
+  if (state.fish.length >= maxFish()) state.stats.everPerfectFusion = true;
   state.coins -= c;
   const avgT = idxs.reduce((s,i)=>s+state.fish[i].t,0)/idxs.length;
   state.fish = state.fish.filter((_,i)=>!idxs.includes(i));
@@ -1306,6 +1336,10 @@ function fuseGroup(tier, type){
   state.fish.push({tier:newTier, t:avgT, type});
   state.stats.totalFusions++;
   state.stats.fusionsByTier[tier] = (state.stats.fusionsByTier[tier]||0) + 1;
+  const fts = state.stats.lastFusionTimestamps;
+  fts.push(Date.now());
+  while (fts.length > 3) fts.shift();
+  if (fts.length === 3 && (fts[2]-fts[0]) <= 10000) state.stats.everChainReaction = true;
   questProgress('fuse', 1);
   if (state.currentQuest && state.currentQuest.type === 'reachtier' && newTier >= state.currentQuest.tierGoal){
     questProgress('reachtier', 1);
@@ -1393,6 +1427,28 @@ function updateMaxSimultaneous(){
   for (const t in counts){
     if (counts[t] > (state.stats.maxSimultaneousByTier[t]||0)) state.stats.maxSimultaneousByTier[t] = counts[t];
   }
+  if (state.fish.length > state.stats.maxFishCountEver) state.stats.maxFishCountEver = state.fish.length;
+  if (state.fish.length === 1) state.stats.everHadOneFish = true;
+}
+
+let unfusedGroupWatch = {};
+function checkPatientGroups(){
+  const groups = {};
+  for (const f of state.fish){
+    const key = f.tier+'_'+f.type;
+    groups[key] = (groups[key]||0) + 1;
+  }
+  for (const key in groups){
+    if (groups[key] >= 3){
+      if (!unfusedGroupWatch[key]) unfusedGroupWatch[key] = Date.now();
+      else if (Date.now() - unfusedGroupWatch[key] >= 60000) state.stats.everWaited60s = true;
+    } else {
+      delete unfusedGroupWatch[key];
+    }
+  }
+  for (const key in unfusedGroupWatch){
+    if (!groups[key] || groups[key] < 3) delete unfusedGroupWatch[key];
+  }
 }
 
 function uiTick(){
@@ -1400,6 +1456,7 @@ function uiTick(){
   expireGoldenIfNeeded();
   tickGoldenEvent();
   updateMaxSimultaneous();
+  checkPatientGroups();
   checkAchievements();
   checkMastery();
   render();
@@ -1454,10 +1511,16 @@ async function loadState(){
       state.rarePearls = loaded.rarePearls || 0;
       state.compendium = loaded.compendium || [1];
       state.bassinStartTime = loaded.bassinStartTime || Date.now();
-      const elapsedSec = Math.max(0, Math.min(OFFLINE_CAP_SEC, (Date.now()-(loaded.lastSave||Date.now()))/1000));
+      const rawElapsedSec = Math.max(0, (Date.now()-(loaded.lastSave||Date.now()))/1000);
+      const elapsedSec = Math.min(OFFLINE_CAP_SEC, rawElapsedSec);
       if (elapsedSec > 5){
         const earned = estIncomePerSec()*elapsedSec*offlineMult();
         state.coins += earned;
+        state.stats.totalCoinsEarnedLifetime += earned;
+        if (rawElapsedSec >= 3600) state.stats.everOffline1h = true;
+        if (rawElapsedSec >= 28800) state.stats.everOffline8h = true;
+        if (rawElapsedSec >= 259200) state.stats.everOffline3days = true;
+        if (earned >= 1000000) state.stats.everOfflineMillion = true;
         showToast(`Pendant votre absence : +${fmt(earned)} 💠`);
       }
     } else {
