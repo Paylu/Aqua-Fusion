@@ -294,8 +294,8 @@
 
 <script>
 const CX=150, CY=150, R_OUT=112, R_IN=70, R_MID=(112+70)/2;
-const K = 1.2; // pacing global des revenus
-const BASE_SPEED = 70; // degrés/seconde de base
+const K = 0.5; // pacing global des revenus
+const BASE_SPEED = 20; // degrés/seconde de base — un tour complet dure ~18s au lieu de ~5s
 const OFFLINE_CAP_SEC = 7200;
 
 const FISH_NAMES = ['Guppy','Tétra néon','Poisson rouge','Danio zébré','Poisson clown','Poisson-ange',
@@ -339,8 +339,9 @@ function defaultState(){
     currentQuest: null,
     questsCompletedInBassin: 0,
     rarePearls: 0,
-    meta: { speedLevel:0, startFishLevel:0, startFeederLevel:0, fuseDiscountLevel:0 },
-    stats: { totalFusions:0, goldenCaught:0 },
+    meta: { speedLevel:0, startFishLevel:0, startFeederLevel:0, fuseDiscountLevel:0,
+      bonusFuseChanceLevel:0, passiveIncomeLevel:0, fishCostDiscountLevel:0, oxygenDurationLevel:0, offlineMultLevel:0 },
+    stats: { totalFusions:0, goldenCaught:0, totalFishBoughtLifetime:0, totalFeedersLifetime:0, oxygenUsedCount:0 },
     achievementsUnlocked: [],
     nextGoldenEventAt: Date.now() + 20000,
     lastSave: Date.now(),
@@ -358,6 +359,9 @@ const ACHIEVEMENTS = [
   { id:'streak7', name:'Habitué de la maison', desc:'Joue 7 jours d\'affilée', reward:5, check:(s)=>s.streak.count>=7 },
   { id:'first_golden', name:'Chasseur de trésor', desc:'Attrape ton premier poisson doré', reward:3, check:(s)=>s.stats.goldenCaught>=1 },
   { id:'five_golden', name:'Pêche miraculeuse', desc:'Attrape 5 poissons dorés', reward:6, check:(s)=>s.stats.goldenCaught>=5 },
+  { id:'fifty_fish', name:'Marchand de poissons', desc:'Achète 50 poissons au total', reward:4, check:(s)=>s.stats.totalFishBoughtLifetime>=50 },
+  { id:'fifteen_feeders', name:'Architecte de bassin', desc:'Pose 15 mangeoires au total', reward:4, check:(s)=>s.stats.totalFeedersLifetime>=15 },
+  { id:'twenty_oxygen', name:'Respiration profonde', desc:'Utilise la bulle d\'oxygène 20 fois', reward:4, check:(s)=>s.stats.oxygenUsedCount>=20 },
 ];
 
 function checkAchievements(){
@@ -375,11 +379,20 @@ const UNLOCK_AT = { feederBoost:2, capacity:3, specialization:4, oxygen:5 };
 
 function costMeta(level){ return 3 + level*3; }
 
+function passiveIncomePerSec(){ return state.meta.passiveIncomeLevel * 0.4 * state.prestige.revenueMult; }
+function offlineMult(){ return 1 + state.meta.offlineMultLevel*0.2; }
+function oxygenDurationMs(){ return 8000 + state.meta.oxygenDurationLevel*2000; }
+
 const META_UPGRADES = [
   { key:'speedLevel', name:'Vitesse permanente', desc:(l)=>`+${l*8}% courant, tous bassins` },
   { key:'startFishLevel', name:'Poissons de départ', desc:(l)=>`${2+l} poissons au lancement d'un bassin` },
   { key:'startFeederLevel', name:'Mangeoires de départ', desc:(l)=>`${1+l} mangeoire(s) au lancement d'un bassin` },
   { key:'fuseDiscountLevel', name:'Rabais de fusion', desc:(l)=>`-${l*5}% coût de fusion, tous bassins` },
+  { key:'bonusFuseChanceLevel', name:'Fusion bonus', desc:(l)=>`${l*5}% de chance qu'une fusion donne palier +2` },
+  { key:'passiveIncomeLevel', name:'Perles passives', desc:(l)=>`+${(l*0.4).toFixed(1)} 💠/s en continu, sans passage` },
+  { key:'fishCostDiscountLevel', name:'Rabais poissons', desc:(l)=>`-${l*5}% coût d'achat des poissons, tous bassins` },
+  { key:'oxygenDurationLevel', name:'Oxygène prolongé', desc:(l)=>`Bulle d'oxygène : ${8+l*2}s au lieu de 8s` },
+  { key:'offlineMultLevel', name:'Gains hors-ligne', desc:(l)=>`+${l*20}% sur les gains pendant l'absence` },
 ];
 
 function generateStartingFish(){
@@ -542,7 +555,10 @@ function angleSpeedBase(){
   return BASE_SPEED * (1 + state.speedLevel*0.2) * metaSpeed * boosted;
 }
 
-function costFish(){ return Math.ceil(8 * Math.pow(1.08, state.fishBoughtCount) * state.prestige.costMult); }
+function costFish(){
+  const discount = 1 - state.meta.fishCostDiscountLevel*0.05;
+  return Math.ceil(8 * Math.pow(1.15, state.fishBoughtCount) * state.prestige.costMult * discount);
+}
 function costSpeed(){ return Math.ceil(28 * Math.pow(1.45, state.speedLevel) * state.prestige.costMult); }
 function costFeederBoost(){ return Math.ceil(45 * Math.pow(1.55, state.feederValueLevel) * state.prestige.costMult); }
 function costIncomeMult(){ return Math.ceil(70 * Math.pow(1.9, state.incomeMultLevel) * state.prestige.costMult); }
@@ -665,6 +681,9 @@ function simulate(dt){
     }
   }
   if (earned > 0){ state.coins += earned; questProgress('perles', earned); }
+
+  const passive = passiveIncomePerSec() * dt;
+  if (passive > 0){ state.coins += passive; questProgress('perles', passive); }
 }
 
 function spawnRipple(x, y, color){
@@ -708,7 +727,7 @@ function estIncomePerSec(){
   const loopsPerSec = angleSpeedBase()/360;
   const feedSum = state.feeders.length * feederValue();
   const fishSum = state.fish.reduce((s,f)=> s + tierValue(f.tier)*typeValueMult(f.type)*typeSpeedMult(f.type), 0);
-  return loopsPerSec * feedSum * fishSum * incomeMult() * K;
+  return loopsPerSec * feedSum * fishSum * incomeMult() * K + passiveIncomePerSec();
 }
 
 // ---- rendering ----
@@ -1045,6 +1064,7 @@ function buyFish(type){
   if (state.coins < c) return;
   state.coins -= c;
   state.fishBoughtCount++;
+  state.stats.totalFishBoughtLifetime++;
   state.fish.push({tier:1, t: Math.random(), type: state.unlocked.specialization ? type : 'normal'});
   questProgress('buy', 1);
   dirty = true;
@@ -1102,6 +1122,7 @@ function addFeeder(){
     if (gap > bestGap){ bestGap = gap; bestMid = (all[i-1]+all[i])/2; }
   }
   state.feeders.push({t: bestMid % 1});
+  state.stats.totalFeedersLifetime++;
   dirty = true;
   buildTankStatic();
   render();
@@ -1118,7 +1139,11 @@ function fuseGroup(tier, type){
   state.coins -= c;
   const avgT = idxs.reduce((s,i)=>s+state.fish[i].t,0)/idxs.length;
   state.fish = state.fish.filter((_,i)=>!idxs.includes(i));
-  const newTier = tier+1;
+  let newTier = tier+1;
+  if (Math.random() < state.meta.bonusFuseChanceLevel*0.05){
+    newTier = tier+2;
+    showToast('🎉 Fusion bonus ! Palier +2 d\'un coup !', 2400);
+  }
   state.fish.push({tier:newTier, t:avgT, type});
   state.stats.totalFusions++;
   questProgress('fuse', 1);
@@ -1143,8 +1168,9 @@ function fuseGroup(tier, type){
 
 function useOxygen(){
   if (Date.now() < oxygenCooldownUntil) return;
-  oxygenActiveUntil = Date.now() + 8000;
+  oxygenActiveUntil = Date.now() + oxygenDurationMs();
   oxygenCooldownUntil = Date.now() + 30000;
+  state.stats.oxygenUsedCount++;
   showToast("Bulle d'oxygène activée !");
   render();
 }
@@ -1255,7 +1281,7 @@ async function loadState(){
       state.bassinStartTime = loaded.bassinStartTime || Date.now();
       const elapsedSec = Math.max(0, Math.min(OFFLINE_CAP_SEC, (Date.now()-(loaded.lastSave||Date.now()))/1000));
       if (elapsedSec > 5){
-        const earned = estIncomePerSec()*elapsedSec;
+        const earned = estIncomePerSec()*elapsedSec*offlineMult();
         state.coins += earned;
         showToast(`Pendant votre absence : +${fmt(earned)} 💠`);
       }
