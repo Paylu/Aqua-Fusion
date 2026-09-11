@@ -195,7 +195,7 @@
 
 <script>
 const CX=150, CY=150, R_OUT=112, R_IN=70, R_MID=(112+70)/2;
-const K = 6; // pacing global des revenus
+const K = 2; // pacing global des revenus
 const BASE_SPEED = 70; // degrés/seconde de base
 const OFFLINE_CAP_SEC = 7200;
 
@@ -248,7 +248,7 @@ function fishName(t){
   if (t <= FISH_NAMES.length) return FISH_NAMES[t-1];
   return `Espèce légendaire n°${t-FISH_NAMES.length}`;
 }
-function tierValue(t){ return Math.pow(1.35, t-1); }
+function tierValue(t){ return Math.pow(3, t-1); }
 function fishHue(t){ return (170 + t*20) % 360; }
 function fishColor(t){ return `hsl(${fishHue(t)} 70% 58%)`; }
 
