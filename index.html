@@ -76,8 +76,22 @@
   .abtn.gold{background:linear-gradient(135deg, var(--gold), #c78e2e); color:#241a02; border:none; grid-column:1/-1;}
   .abtn:disabled{opacity:.35;}
   .abtn .sub{display:block; font-weight:500; font-size:.64rem; margin-top:1px; opacity:.85;}
+  .abtn{position:relative;}
+  .infoDot{
+    position:absolute; top:2px; right:2px; width:15px; height:15px; border-radius:50%;
+    background:rgba(255,255,255,.18); color:inherit; font-size:.6rem; line-height:15px;
+    text-align:center;
+  }
 
   .fish{filter:drop-shadow(0 0 3px rgba(79,216,196,.45));}
+  .fish.golden{
+    filter:drop-shadow(0 0 6px #ffd700) drop-shadow(0 0 12px #ffae00);
+    animation:goldenPulse .7s ease-in-out infinite;
+  }
+  @keyframes goldenPulse{
+    0%,100%{ opacity:1; }
+    50%{ opacity:.6; }
+  }
   .feeder-line{stroke-dasharray:3 3;}
   .rays{position:absolute; inset:0; z-index:1; opacity:.12; pointer-events:none;
     background:repeating-linear-gradient(100deg, rgba(255,255,255,.5) 0 6px, transparent 6px 40px);
@@ -181,12 +195,23 @@
     position:absolute; top:10px; right:10px; background:none; border:none;
     color:var(--muted); font-size:1rem; padding:4px 8px; margin:0;
   }
-  .journalTabs{display:flex; gap:6px; margin:10px 0 14px;}
+  .journalTabs{display:flex; gap:4px; margin:10px 0 14px; flex-wrap:wrap;}
   .tabBtn{
-    flex:1; padding:8px; border-radius:9px; border:1px solid var(--line);
-    background:var(--panel2); color:var(--muted); font-size:.78rem; font-weight:600;
+    flex:1; min-width:70px; padding:7px 4px; border-radius:9px; border:1px solid var(--line);
+    background:var(--panel2); color:var(--muted); font-size:.7rem; font-weight:600;
   }
   .tabBtn.active{background:var(--teal); color:#04211c; border:none;}
+  .metaRow{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    background:var(--panel2); border:1px solid var(--line); border-radius:11px; padding:9px 11px; margin-bottom:8px;
+  }
+  .metaRow .mname{font-size:.82rem; font-weight:600;}
+  .metaRow .mdesc{font-size:.7rem; color:var(--muted); margin-top:1px;}
+  .metaRow button{
+    border:none; border-radius:9px; padding:8px 10px; font-size:.72rem; font-weight:700;
+    background:var(--gold); color:#241a02; white-space:nowrap;
+  }
+  .metaRow button:disabled{background:#2a3557; color:var(--muted);}
   .compendiumGrid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
   .compendiumItem{
     aspect-ratio:1/1; border-radius:10px; background:var(--panel2); border:1px solid var(--line);
@@ -242,6 +267,7 @@
       <button class="tabBtn active" id="tabCompendiumBtn">Compendium</button>
       <button class="tabBtn" id="tabRecordsBtn">Records</button>
       <button class="tabBtn" id="tabFleetBtn">Flotte</button>
+      <button class="tabBtn" id="tabMetaBtn">Méta</button>
     </div>
     <div id="compendiumPane"></div>
     <div id="recordsPane" style="display:none;"></div>
@@ -249,25 +275,26 @@
       <div class="fleet" id="fleet"></div>
       <button class="reset" id="resetBtn">Réinitialiser toute la progression</button>
     </div>
+    <div id="metaPane" style="display:none;"></div>
   </div>
 </div>
 
 <div class="actionGrid" id="actionGrid">
-  <button class="abtn primary" id="fuseBtn">Fusionner<span class="sub" id="fuseCost"></span></button>
-  <button class="abtn primary" id="buyNormalBtn">Nouveau poisson<span class="sub" id="buyNormalCost"></span></button>
-  <button class="abtn" id="buyFastBtn" style="display:none;">⚡ Poisson rapide<span class="sub" id="buyFastCost"></span></button>
-  <button class="abtn" id="buySlowBtn" style="display:none;">🐢 Poisson lent<span class="sub" id="buySlowCost"></span></button>
-  <button class="abtn" id="speedBtn">Courant +<span class="sub" id="speedCost"></span></button>
-  <button class="abtn" id="incomeMultBtn">Multiplier perles<span class="sub" id="incomeMultCost"></span></button>
-  <button class="abtn" id="addFeederBtn">Nouvelle mangeoire<span class="sub" id="feederCost"></span></button>
-  <button class="abtn" id="feederBoostBtn" style="display:none;">Enrichir mangeoires<span class="sub" id="feederBoostCost"></span></button>
-  <button class="abtn" id="capacityBtn" style="display:none;">Agrandir le bassin<span class="sub" id="capacityCost"></span></button>
-  <button class="abtn gold" id="oxygenBtn" style="display:none;">Bulle d'oxygène</button>
+  <button class="abtn primary" id="fuseBtn">Fusionner<span class="sub" id="fuseCost"></span><span class="infoDot" data-info="Fusionne automatiquement le groupe de 3 poissons identiques le moins avancé. Coût en perles, augmente fortement à chaque palier.">ⓘ</span></button>
+  <button class="abtn primary" id="buyNormalBtn">Nouveau poisson<span class="sub" id="buyNormalCost"></span><span class="infoDot" data-info="Ajoute un poisson palier 1 dans le bassin. Le prix grimpe à chaque achat, mais redevient abordable au bassin suivant.">ⓘ</span></button>
+  <button class="abtn" id="buyFastBtn" style="display:none;">⚡ Poisson rapide<span class="sub" id="buyFastCost"></span><span class="infoDot" data-info="Nage plus vite (plus de passages) mais rapporte moins par passage. Idéal pour remplir les mangeoires souvent.">ⓘ</span></button>
+  <button class="abtn" id="buySlowBtn" style="display:none;">🐢 Poisson lent<span class="sub" id="buySlowCost"></span><span class="infoDot" data-info="Nage plus lentement mais rapporte beaucoup plus par passage. Idéal si tu as peu de mangeoires.">ⓘ</span></button>
+  <button class="abtn" id="speedBtn">Courant +<span class="sub" id="speedCost"></span><span class="infoDot" data-info="Augmente la vitesse de tous les poissons du bassin (+20% par niveau). Plus de passages devant les mangeoires = plus de revenu.">ⓘ</span></button>
+  <button class="abtn" id="incomeMultBtn">Multiplier perles<span class="sub" id="incomeMultCost"></span><span class="infoDot" data-info="Multiplicateur global sur tous les gains de perles (+12% par niveau). Coût qui grimpe vite, à ne pas négliger mais pas spammer non plus.">ⓘ</span></button>
+  <button class="abtn" id="addFeederBtn">Nouvelle mangeoire<span class="sub" id="feederCost"></span><span class="infoDot" data-info="Ajoute un point de passage sur le circuit (placé automatiquement dans le plus grand vide). Plus de mangeoires = plus d'occasions de gagner des perles à chaque tour.">ⓘ</span></button>
+  <button class="abtn" id="feederBoostBtn">Enrichir mangeoires<span class="sub" id="feederBoostCost"></span><span class="infoDot" data-info="Augmente la valeur de TOUTES les mangeoires déjà posées (+30% par niveau). Se débloque au bassin 2.">ⓘ</span></button>
+  <button class="abtn" id="capacityBtn">Agrandir le bassin<span class="sub" id="capacityCost"></span><span class="infoDot" data-info="Augmente le nombre maximum de poissons dans le bassin (+2 places). Rare et cher exprès : limité à 3 achats par bassin. Se débloque au bassin 3.">ⓘ</span></button>
+  <button class="abtn gold" id="oxygenBtn">Bulle d'oxygène<span class="sub" id="oxygenSub"></span><span class="infoDot" data-info="Double la vitesse de tous les poissons pendant 8 secondes. Recharge de 30 secondes après usage. Se débloque au bassin 5.">ⓘ</span></button>
 </div>
 
 <script>
 const CX=150, CY=150, R_OUT=112, R_IN=70, R_MID=(112+70)/2;
-const K = 2; // pacing global des revenus
+const K = 1.2; // pacing global des revenus
 const BASE_SPEED = 70; // degrés/seconde de base
 const OFFLINE_CAP_SEC = 7200;
 
@@ -311,8 +338,61 @@ function defaultState(){
     streak: { count: 0, lastPlayDate: null },
     currentQuest: null,
     questsCompletedInBassin: 0,
+    rarePearls: 0,
+    meta: { speedLevel:0, startFishLevel:0, startFeederLevel:0, fuseDiscountLevel:0 },
+    stats: { totalFusions:0, goldenCaught:0 },
+    achievementsUnlocked: [],
+    nextGoldenEventAt: Date.now() + 20000,
     lastSave: Date.now(),
   };
+}
+
+const ACHIEVEMENTS = [
+  { id:'first_fuse', name:'Première fusion', desc:'Réalise ta toute première fusion', reward:2, check:(s)=>s.stats.totalFusions>=1 },
+  { id:'ten_fusions', name:'Chimiste amateur', desc:'Réalise 10 fusions au total', reward:3, check:(s)=>s.stats.totalFusions>=10 },
+  { id:'palier10', name:'Grand fond', desc:'Fais évoluer un poisson jusqu\'au palier 10', reward:4, check:(s)=>s.records.biggestTier>=10 },
+  { id:'full_compendium', name:'Naturaliste', desc:'Découvre les 16 espèces nommées', reward:6, check:(s)=>{
+      for (let t=1;t<=16;t++) if (!s.compendium.includes(t)) return false; return true; } },
+  { id:'five_bassins', name:'Habitué du bassin', desc:'Complète 5 bassins', reward:5, check:(s)=>s.prestige.bassinsCompleted>=5 },
+  { id:'ten_bassins', name:'Aquariophile confirmé', desc:'Complète 10 bassins', reward:8, check:(s)=>s.prestige.bassinsCompleted>=10 },
+  { id:'streak7', name:'Habitué de la maison', desc:'Joue 7 jours d\'affilée', reward:5, check:(s)=>s.streak.count>=7 },
+  { id:'first_golden', name:'Chasseur de trésor', desc:'Attrape ton premier poisson doré', reward:3, check:(s)=>s.stats.goldenCaught>=1 },
+  { id:'five_golden', name:'Pêche miraculeuse', desc:'Attrape 5 poissons dorés', reward:6, check:(s)=>s.stats.goldenCaught>=5 },
+];
+
+function checkAchievements(){
+  for (const a of ACHIEVEMENTS){
+    if (!state.achievementsUnlocked.includes(a.id) && a.check(state)){
+      state.achievementsUnlocked.push(a.id);
+      state.rarePearls += a.reward;
+      showToast(`🏆 Haut fait : ${a.name} (+${a.reward} 💎)`, 3600);
+    }
+  }
+}
+
+const MAX_META_LEVEL = 5;
+const UNLOCK_AT = { feederBoost:2, capacity:3, specialization:4, oxygen:5 };
+
+function costMeta(level){ return 3 + level*3; }
+
+const META_UPGRADES = [
+  { key:'speedLevel', name:'Vitesse permanente', desc:(l)=>`+${l*8}% courant, tous bassins` },
+  { key:'startFishLevel', name:'Poissons de départ', desc:(l)=>`${2+l} poissons au lancement d'un bassin` },
+  { key:'startFeederLevel', name:'Mangeoires de départ', desc:(l)=>`${1+l} mangeoire(s) au lancement d'un bassin` },
+  { key:'fuseDiscountLevel', name:'Rabais de fusion', desc:(l)=>`-${l*5}% coût de fusion, tous bassins` },
+];
+
+function generateStartingFish(){
+  const n = Math.min(5, 2 + state.meta.startFishLevel);
+  const out = [];
+  for (let i=0;i<n;i++) out.push({tier:1, t:i/n, type:'normal'});
+  return out;
+}
+function generateStartingFeeders(){
+  const n = Math.min(2, 1 + state.meta.startFeederLevel);
+  const out = [];
+  for (let i=0;i<n;i++) out.push({t:i/n});
+  return out;
 }
 
 const QUESTS_PER_BASSIN = 3;
@@ -366,8 +446,16 @@ function updateStreak(){
   if (s.lastPlayDate !== today){
     const y = new Date(Date.now() - 86400000);
     const yStr = `${y.getFullYear()}-${y.getMonth()+1}-${y.getDate()}`;
+    const wasPlayingBefore = s.lastPlayDate !== null;
     s.count = (s.lastPlayDate === yStr) ? s.count+1 : 1;
     s.lastPlayDate = today;
+    if (wasPlayingBefore){
+      const bonusCoins = 20 + s.count*8;
+      const bonusPearls = (s.count % 3 === 0) ? 1 : 0;
+      state.coins += bonusCoins;
+      state.rarePearls += bonusPearls;
+      showToast(`🔥 Jour ${s.count} ! Bonus de connexion : +${bonusCoins} 💠${bonusPearls?' +1 💎':''}`, 3600);
+    }
   }
 }
 
@@ -389,8 +477,9 @@ function questProgress(kind, amount){
     q.progress = q.target;
     q.claimed = true;
     state.coins += q.reward;
+    state.rarePearls += 1;
     state.questsCompletedInBassin++;
-    showToast(`Quête accomplie ! +${q.reward} 💠 (${state.questsCompletedInBassin}/${QUESTS_PER_BASSIN})`);
+    showToast(`Quête accomplie ! +${q.reward} 💠 +1 💎 (${state.questsCompletedInBassin}/${QUESTS_PER_BASSIN})`);
     startNewQuest();
     checkBassinCompletable();
   }
@@ -400,7 +489,8 @@ function discoverTier(t){
   if (!state.compendium.includes(t)){
     state.compendium.push(t);
     state.compendium.sort((a,b)=>a-b);
-    showToast(`Nouvelle espèce découverte : ${fishName(t)} !`);
+    state.rarePearls += 1;
+    showToast(`Nouvelle espèce découverte : ${fishName(t)} ! +1 💎`);
   }
   if (t > state.records.biggestTier) state.records.biggestTier = t;
 }
@@ -448,21 +538,26 @@ function fusionTarget(){ return 3 + state.bassinIndex; }
 
 function angleSpeedBase(){
   const boosted = Date.now() < oxygenActiveUntil ? 2 : 1;
-  return BASE_SPEED * (1 + state.speedLevel*0.2) * boosted;
+  const metaSpeed = 1 + state.meta.speedLevel*0.08;
+  return BASE_SPEED * (1 + state.speedLevel*0.2) * metaSpeed * boosted;
 }
 
 function costFish(){ return Math.ceil(8 * Math.pow(1.08, state.fishBoughtCount) * state.prestige.costMult); }
 function costSpeed(){ return Math.ceil(28 * Math.pow(1.45, state.speedLevel) * state.prestige.costMult); }
 function costFeederBoost(){ return Math.ceil(45 * Math.pow(1.55, state.feederValueLevel) * state.prestige.costMult); }
-function costIncomeMult(){ return Math.ceil(40 * Math.pow(1.5, state.incomeMultLevel) * state.prestige.costMult); }
-function costCapacity(){ return Math.ceil(60 * Math.pow(1.7, state.capacityLevel) * state.prestige.costMult); }
+function costIncomeMult(){ return Math.ceil(70 * Math.pow(1.9, state.incomeMultLevel) * state.prestige.costMult); }
+const MAX_CAPACITY_PER_BASSIN = 3;
+function costCapacity(){ return Math.ceil(500 * Math.pow(3.2, state.capacityLevel)); }
 function costNewFeeder(){ return Math.ceil(180 * Math.pow(2.2, state.feeders.length-1) * state.prestige.costMult); }
-function costFuse(t){ return Math.ceil(14 * Math.pow(1.9, t-1) * state.prestige.costMult); }
+function costFuse(t){
+  const fuseDiscount = 1 - state.meta.fuseDiscountLevel*0.05;
+  return Math.ceil(35 * Math.pow(2.3, t-1) * fuseDiscount);
+}
 function maxFish(){ return Math.min(40, 10 + state.bassinIndex*2 + state.capacityLevel*2); }
 function maxFeeders(){ const b = biomeFor(state.bassinIndex); return b.sides===0 ? 8 : Math.min(12, b.sides*2); }
 
 function feederValue(){ return (1 + state.feederValueLevel*0.3) * state.prestige.revenueMult; }
-function incomeMult(){ return 1 + state.incomeMultLevel*0.15; }
+function incomeMult(){ return 1 + state.incomeMultLevel*0.12; }
 
 function checkUnlocks(){
   const u = state.unlocked;
@@ -473,12 +568,12 @@ function checkUnlocks(){
   if (state.bassinIndex >= 6) u.schooling = true;
 }
 
-function showToast(msg){
+function showToast(msg, duration){
   const el = document.getElementById('toast');
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(showToast._t);
-  showToast._t = setTimeout(()=> el.classList.remove('show'), 2600);
+  showToast._t = setTimeout(()=> el.classList.remove('show'), duration || 2600);
 }
 
 function fmt(n){
@@ -543,12 +638,22 @@ function simulate(dt){
   }
   let earned = 0;
   const biome = biomeFor(state.bassinIndex);
+  const GOLDEN_MULT = 15;
   for (const fi in crossingsThisTick){
     const group = crossingsThisTick[fi];
     const schoolBonus = state.unlocked.schooling && group.length > 1 ? (1 + 0.25*(group.length-1)) : 1;
     let groupEarned = 0;
     for (const f of group){
-      groupEarned += tierValue(f.tier) * typeValueMult(f.type) * feederValue() * incomeMult() * K * schoolBonus;
+      let base = tierValue(f.tier) * typeValueMult(f.type) * feederValue() * incomeMult() * K * schoolBonus;
+      if (f.golden){
+        base *= GOLDEN_MULT;
+        f.golden = false;
+        state.stats.goldenCaught++;
+        state.nextGoldenEventAt = Date.now() + 30000 + Math.random()*40000;
+        showToast(`✨ Poisson doré attrapé ! +${fmt(base)} 💠`, 2800);
+        buildFishLayer();
+      }
+      groupEarned += base;
     }
     earned += groupEarned;
     if (group.length > 1) questProgress('simultaneous', 1);
@@ -645,7 +750,8 @@ function buildTankStatic(){
 
 function fishMarkup(f, size){
   const t = f.tier;
-  const c = fishColor(t), cl = fishColorLight(t);
+  const c = f.golden ? '#ffd700' : fishColor(t);
+  const cl = f.golden ? '#fff3b0' : fishColorLight(t);
   if (t === 14) return octopusMarkup(size, c, cl);
   if (t === 15) return rayMarkup(size, c, cl);
   if (t === 13) return sharkMarkup(size, c, cl);
@@ -762,7 +868,34 @@ function positionFish(){
     if (!el) return;
     const p = positionAtT(f.t, biome.sides, R_MID, 0);
     el.setAttribute('transform', `translate(${p.x},${p.y}) rotate(${p.heading})`);
+    el.classList.toggle('golden', !!f.golden);
   });
+}
+
+function tickGoldenEvent(){
+  const hasGolden = state.fish.some(f=>f.golden);
+  if (hasGolden) return;
+  if (Date.now() < state.nextGoldenEventAt) return;
+  if (state.fish.length === 0) return;
+  const idx = Math.floor(Math.random()*state.fish.length);
+  state.fish[idx].golden = true;
+  state.fish[idx].goldenUntil = Date.now() + 14000;
+  showToast('✨ Un poisson doré apparaît ! Fais-le passer devant une mangeoire vite !', 3200);
+  buildFishLayer();
+}
+
+function expireGoldenIfNeeded(){
+  let changed = false;
+  for (const f of state.fish){
+    if (f.golden && Date.now() > f.goldenUntil){
+      f.golden = false;
+      changed = true;
+    }
+  }
+  if (changed){
+    state.nextGoldenEventAt = Date.now() + 30000 + Math.random()*40000;
+    buildFishLayer();
+  }
 }
 
 function findFusableGroup(){
@@ -822,26 +955,32 @@ function render(){
   document.getElementById('feederCost').textContent = feedersMaxed ? 'Max' : fmt(costNewFeeder())+' 💠';
 
   const feederBoostBtn = document.getElementById('feederBoostBtn');
-  feederBoostBtn.style.display = state.unlocked.feederBoost ? 'block' : 'none';
   if (state.unlocked.feederBoost){
     feederBoostBtn.disabled = state.coins < costFeederBoost();
     document.getElementById('feederBoostCost').textContent = fmt(costFeederBoost())+' 💠';
+  } else {
+    feederBoostBtn.disabled = true;
+    document.getElementById('feederBoostCost').textContent = `🔒 bassin ${UNLOCK_AT.feederBoost}`;
   }
 
   const capBtn = document.getElementById('capacityBtn');
-  capBtn.style.display = state.unlocked.capacity ? 'block' : 'none';
   if (state.unlocked.capacity){
-    const capMaxed = maxFish() >= 40;
+    const capMaxed = maxFish() >= 40 || state.capacityLevel >= MAX_CAPACITY_PER_BASSIN;
     capBtn.disabled = state.coins < costCapacity() || capMaxed;
-    document.getElementById('capacityCost').textContent = capMaxed ? 'Max' : fmt(costCapacity())+' 💠 (+2)';
+    document.getElementById('capacityCost').textContent = capMaxed ? 'Max pour ce bassin' : fmt(costCapacity())+' 💠 (+2, rare)';
+  } else {
+    capBtn.disabled = true;
+    document.getElementById('capacityCost').textContent = `🔒 bassin ${UNLOCK_AT.capacity}`;
   }
 
   const ob = document.getElementById('oxygenBtn');
-  ob.style.display = state.unlocked.oxygen ? 'block' : 'none';
   if (state.unlocked.oxygen){
     const onCooldown = Date.now() < oxygenCooldownUntil;
     ob.disabled = onCooldown;
-    ob.textContent = onCooldown ? `Recharge... ${Math.ceil((oxygenCooldownUntil-Date.now())/1000)}s` : "Bulle d'oxygène (x2 vitesse, 8s)";
+    document.getElementById('oxygenSub').textContent = onCooldown ? `Recharge... ${Math.ceil((oxygenCooldownUntil-Date.now())/1000)}s` : "x2 vitesse, 8s";
+  } else {
+    ob.disabled = true;
+    document.getElementById('oxygenSub').textContent = `🔒 bassin ${UNLOCK_AT.oxygen}`;
   }
 
   renderFleet();
@@ -941,7 +1080,7 @@ function buyIncomeMult(){
 }
 
 function buyCapacity(){
-  if (maxFish() >= 40) return;
+  if (maxFish() >= 40 || state.capacityLevel >= MAX_CAPACITY_PER_BASSIN) return;
   const c = costCapacity();
   if (state.coins < c) return;
   state.coins -= c;
@@ -981,6 +1120,7 @@ function fuseGroup(tier, type){
   state.fish = state.fish.filter((_,i)=>!idxs.includes(i));
   const newTier = tier+1;
   state.fish.push({tier:newTier, t:avgT, type});
+  state.stats.totalFusions++;
   questProgress('fuse', 1);
   if (state.currentQuest && state.currentQuest.type === 'reachtier' && newTier >= state.currentQuest.tierGoal){
     questProgress('reachtier', 1);
@@ -1016,11 +1156,13 @@ function completeBassin(){
     state.records.bestBassinSeconds = elapsed;
     recordText = ' — nouveau record de vitesse !';
   }
+  const pearlsGained = 3;
+  state.rarePearls += pearlsGained;
   state.prestige.bassinsCompleted++;
   state.prestige.revenueMult = 1 + 0.1*state.prestige.bassinsCompleted;
   state.prestige.costMult = Math.max(0.5, 1 - 0.03*state.prestige.bassinsCompleted);
   document.getElementById('overlayTitle').textContent = 'Bassin complété !';
-  document.getElementById('overlaySub').textContent = `Bouclé en ${formatDuration(elapsed)}${recordText} Vous passez au bassin ${state.bassinIndex+1}.`;
+  document.getElementById('overlaySub').textContent = `Bouclé en ${formatDuration(elapsed)}${recordText} +${pearlsGained} 💎 Vous passez au bassin ${state.bassinIndex+1}.`;
   document.getElementById('overlayBonus').textContent = `Revenu global x${state.prestige.revenueMult.toFixed(2)}, coûts x${state.prestige.costMult.toFixed(2)}`;
   document.getElementById('overlay').classList.add('show');
   saveState();
@@ -1029,13 +1171,13 @@ function completeBassin(){
 function startNewBassin(){
   state.bassinIndex++;
   state.coins = 0;
-  state.fish = [ {tier:1, t:0, type:'normal'}, {tier:1, t:0.5, type:'normal'} ];
-  state.fishBoughtCount = 2;
+  state.fish = generateStartingFish();
+  state.fishBoughtCount = state.fish.length;
   state.speedLevel = 0;
   state.feederValueLevel = 0;
   state.incomeMultLevel = 0;
   state.capacityLevel = 0;
-  state.feeders = [ {t:0} ];
+  state.feeders = generateStartingFeeders();
   state.bassinStartTime = Date.now();
   state.questsCompletedInBassin = 0;
   startNewQuest();
@@ -1061,6 +1203,9 @@ function loop(ts){
 let tickCounter = 0;
 function uiTick(){
   tickCounter++;
+  expireGoldenIfNeeded();
+  tickGoldenEvent();
+  checkAchievements();
   render();
   dirty = true;
   if (tickCounter % 3 === 0){ saveState(); }
@@ -1101,6 +1246,11 @@ async function loadState(){
       state.prestige = Object.assign(defaultState().prestige, loaded.prestige||{});
       state.records = Object.assign(defaultState().records, loaded.records||{});
       state.streak = Object.assign(defaultState().streak, loaded.streak||{});
+      state.meta = Object.assign(defaultState().meta, loaded.meta||{});
+      state.stats = Object.assign(defaultState().stats, loaded.stats||{});
+      state.achievementsUnlocked = loaded.achievementsUnlocked || [];
+      state.nextGoldenEventAt = loaded.nextGoldenEventAt || (Date.now() + 20000);
+      state.rarePearls = loaded.rarePearls || 0;
       state.compendium = loaded.compendium || [1];
       state.bassinStartTime = loaded.bassinStartTime || Date.now();
       const elapsedSec = Math.max(0, Math.min(OFFLINE_CAP_SEC, (Date.now()-(loaded.lastSave||Date.now()))/1000));
@@ -1158,23 +1308,72 @@ function renderCompendium(){
 
 function renderRecords(){
   const pane = document.getElementById('recordsPane');
-  pane.innerHTML = `
+  let html = `
     <div class="recordRow"><span>Bassin le plus rapide</span><span class="rval">${formatDuration(state.records.bestBassinSeconds)}</span></div>
     <div class="recordRow"><span>Plus gros poisson jamais atteint</span><span class="rval">${fishName(state.records.biggestTier)} (palier ${state.records.biggestTier})</span></div>
     <div class="recordRow"><span>Bassins complétés au total</span><span class="rval">${state.prestige.bassinsCompleted}</span></div>
-    <div class="recordRow" style="border-bottom:none;"><span>Série de jours joués</span><span class="rval">${state.streak.count} 🔥</span></div>
+    <div class="recordRow"><span>Série de jours joués</span><span class="rval">${state.streak.count} 🔥</span></div>
+    <div class="recordRow" style="border-bottom:none;"><span>Poissons dorés attrapés</span><span class="rval">${state.stats.goldenCaught} ✨</span></div>
   `;
+  html += `<p style="color:var(--muted); font-size:.72rem; margin:16px 0 8px; text-transform:uppercase; letter-spacing:.06em;">Hauts faits (${state.achievementsUnlocked.length}/${ACHIEVEMENTS.length})</p>`;
+  for (const a of ACHIEVEMENTS){
+    const done = state.achievementsUnlocked.includes(a.id);
+    html += `<div class="recordRow" style="opacity:${done?1:.4};">
+      <span>${done?'🏆':'🔒'} ${a.name}<br><span style="font-size:.68rem; color:var(--muted);">${a.desc}</span></span>
+      <span class="rval">${done?'':`+${a.reward} 💎`}</span>
+    </div>`;
+  }
+  pane.innerHTML = html;
+}
+
+function buyMeta(key){
+  const level = state.meta[key];
+  if (level >= MAX_META_LEVEL) return;
+  const c = costMeta(level);
+  if (state.rarePearls < c) return;
+  state.rarePearls -= c;
+  state.meta[key]++;
+  dirty = true;
+  renderMeta();
+  render();
+  saveState();
+}
+
+function renderMeta(){
+  const pane = document.getElementById('metaPane');
+  let html = `<p style="color:var(--muted); font-size:.75rem; margin:0 0 12px;">
+    💎 <b style="color:var(--gold);">${state.rarePearls}</b> perles rares — gagnées via les quêtes, le compendium et les bassins complétés. Permanentes, jamais perdues en changeant de bassin.
+  </p>`;
+  for (const up of META_UPGRADES){
+    const level = state.meta[up.key];
+    const maxed = level >= MAX_META_LEVEL;
+    const c = costMeta(level);
+    html += `
+      <div class="metaRow">
+        <div>
+          <div class="mname">${up.name} (${level}/${MAX_META_LEVEL})</div>
+          <div class="mdesc">${up.desc(level)}</div>
+        </div>
+        <button data-key="${up.key}" ${maxed || state.rarePearls<c ? 'disabled':''}>${maxed?'Max':c+' 💎'}</button>
+      </div>
+    `;
+  }
+  pane.innerHTML = html;
+  pane.querySelectorAll('button[data-key]').forEach(btn => {
+    btn.onclick = () => buyMeta(btn.dataset.key);
+  });
 }
 
 function openJournal(){
   renderCompendium();
   renderRecords();
+  renderMeta();
   document.getElementById('journalOverlay').classList.add('show');
 }
 
 function switchJournalTab(tab){
-  const tabs = { compendium: 'tabCompendiumBtn', records: 'tabRecordsBtn', fleet: 'tabFleetBtn' };
-  const panes = { compendium: 'compendiumPane', records: 'recordsPane', fleet: 'fleetPane' };
+  const tabs = { compendium: 'tabCompendiumBtn', records: 'tabRecordsBtn', fleet: 'tabFleetBtn', meta: 'tabMetaBtn' };
+  const panes = { compendium: 'compendiumPane', records: 'recordsPane', fleet: 'fleetPane', meta: 'metaPane' };
   for (const k in tabs){
     document.getElementById(tabs[k]).classList.toggle('active', k === tab);
     document.getElementById(panes[k]).style.display = (k === tab) ? 'block' : 'none';
@@ -1186,6 +1385,13 @@ async function init(){
   buildTankStatic();
   spawnBubbles();
   render();
+
+  document.querySelectorAll('.infoDot').forEach(dot => {
+    dot.onclick = (e) => {
+      e.stopPropagation();
+      showToast(dot.dataset.info, 4200);
+    };
+  });
 
   document.getElementById('fuseBtn').onclick = doAutoFuse;
   document.getElementById('buyNormalBtn').onclick = () => buyFish('normal');
@@ -1205,6 +1411,7 @@ async function init(){
   document.getElementById('tabCompendiumBtn').onclick = () => switchJournalTab('compendium');
   document.getElementById('tabRecordsBtn').onclick = () => switchJournalTab('records');
   document.getElementById('tabFleetBtn').onclick = () => switchJournalTab('fleet');
+  document.getElementById('tabMetaBtn').onclick = () => switchJournalTab('meta');
   document.getElementById('resetBtn').onclick = () => {
     if (confirm('Réinitialiser toute la progression, y compris les bonus de prestige, le compendium et les records ?')){
       state = defaultState();
