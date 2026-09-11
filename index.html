@@ -14,11 +14,11 @@
 <style>
   :root{
     --bg:#061018;
-    --panel:#0e1c2c;
-    --panel2:#132638;
+    --panel:rgba(14,28,44,.62);
+    --panel2:rgba(19,38,56,.62);
     --line:#1f3a52;
     --text:#eaf4f6;
-    --muted:#7fa0b0;
+    --muted:#9fb6c4;
     --teal:#4fd8c4;
     --gold:#ffcf6b;
     --accent:#4fd8c4;
@@ -26,32 +26,57 @@
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none;}
   html,body{height:100%;}
   body{
-    margin:0; background:radial-gradient(ellipse at 50% -10%, #0f2a3a 0%, var(--bg) 55%);
+    margin:0; background:#04070c;
     color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:14px 10px 30px;
+    overflow:hidden;
   }
-  .wrap{width:100%; max-width:460px;}
+  .aquarium-bg{position:fixed; inset:0; z-index:0; overflow:hidden;
+    background:linear-gradient(180deg, #0a3348 0%, #062231 55%, #041722 100%);}
+  #tank{width:100%; height:100%; display:block;}
 
-  header{text-align:center; margin-bottom:8px;}
-  header h1{font-size:1.28rem; margin:0 0 2px; font-weight:700;}
-  header .biome{color:var(--accent); font-size:.85rem; font-weight:600;}
-  header .goal{color:var(--muted); font-size:.72rem; margin-top:2px;}
-
-  .stats{
-    display:flex; justify-content:space-between; align-items:center;
-    background:var(--panel); border:1px solid var(--line); border-radius:14px;
-    padding:8px 14px; margin:6px 0;
+  .hud-top{
+    position:fixed; top:0; left:0; right:0; z-index:2;
+    max-width:460px; margin:0 auto;
+    padding:12px 12px 8px;
+    background:linear-gradient(180deg, rgba(4,7,12,.55) 0%, rgba(4,7,12,0) 100%);
+    text-shadow:0 1px 5px rgba(0,0,0,.7);
   }
-  .stat .label{font-size:.63rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
-  .stat .value{font-size:1rem; font-weight:700;}
-  .stat .value.gold{color:var(--gold);}
-
-  .tankwrap{
-    background:linear-gradient(180deg, #0a3348 0%, #062231 55%, #041722 100%);
-    border:1px solid var(--line); border-radius:16px;
-    padding:6px; margin-bottom:10px; position:relative; overflow:hidden;
+  .hud-titlerow{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;}
+  .hud-title{font-size:.92rem; font-weight:700; color:var(--accent);}
+  .iconBtn{
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    font-size:1rem; padding:5px 9px; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    text-shadow:none;
   }
-  #tank{width:100%; height:210px; display:block; position:relative; z-index:2;}
+  .hud-pills{display:flex; gap:6px; margin-bottom:6px;}
+  .pill{
+    background:var(--panel); border:1px solid var(--line); border-radius:20px;
+    padding:4px 10px; font-size:.78rem; font-weight:700;
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  }
+  .pill.gold{color:var(--gold);}
+  .hud-line{font-size:.68rem; color:var(--text); opacity:.9; margin-top:2px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .hud-line.muted{color:var(--muted);}
+
+  .actionGrid{
+    position:fixed; left:50%; bottom:0; transform:translateX(-50%); z-index:2;
+    width:100%; max-width:460px; box-sizing:border-box;
+    display:grid; grid-template-columns:1fr 1fr; gap:5px;
+    padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+    background:linear-gradient(0deg, rgba(4,7,12,.75) 40%, rgba(4,7,12,0) 100%);
+  }
+  .abtn{
+    background:var(--panel2); border:1px solid var(--line); border-radius:10px;
+    color:var(--text); font-size:.72rem; font-weight:600; padding:7px 6px;
+    text-align:center; line-height:1.2;
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  }
+  .abtn.primary{background:linear-gradient(135deg, var(--teal), #2fa393); color:#04211c; border:none;}
+  .abtn.gold{background:linear-gradient(135deg, var(--gold), #c78e2e); color:#241a02; border:none; grid-column:1/-1;}
+  .abtn:disabled{opacity:.35;}
+  .abtn .sub{display:block; font-weight:500; font-size:.64rem; margin-top:1px; opacity:.85;}
+
   .fish{filter:drop-shadow(0 0 3px rgba(79,216,196,.45));}
   .feeder-line{stroke-dasharray:3 3;}
   .rays{position:absolute; inset:0; z-index:1; opacity:.12; pointer-events:none;
@@ -70,6 +95,9 @@
   }
 
   .row{display:flex; gap:6px; margin-bottom:6px;}
+  .btn, .toggle-row, .fleetrow, .questbar, .card{
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  }
   .btn{
     flex:1; padding:9px 6px; border-radius:11px; border:1px solid var(--line);
     background:var(--panel2); color:var(--text); font-size:.76rem; font-weight:600;
@@ -135,51 +163,64 @@
   }
 
   .footer{display:flex; justify-content:center; margin-top:14px;}
-  .reset{font-size:.7rem; color:var(--muted); background:none; border:none; text-decoration:underline; padding:6px;}
+  .reset{display:block; margin:16px auto 0; font-size:.7rem; color:var(--muted); background:none; border:none; text-decoration:underline; padding:6px;}
+
+  .questbar{
+    display:flex; align-items:center; gap:8px;
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:7px 10px; margin-top:8px; font-size:.72rem;
+  }
+  .questbar .streak{color:var(--gold); font-weight:700; white-space:nowrap;}
+  .questbar .quest{flex:1; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .journalBtn{
+    background:none; border:none; font-size:1.1rem; padding:2px 4px; cursor:pointer; flex-shrink:0;
+  }
+
+  .journalcard{max-width:400px; width:100%; position:relative; text-align:left; max-height:80vh; overflow-y:auto;}
+  .closeBtn{
+    position:absolute; top:10px; right:10px; background:none; border:none;
+    color:var(--muted); font-size:1rem; padding:4px 8px; margin:0;
+  }
+  .journalTabs{display:flex; gap:6px; margin:10px 0 14px;}
+  .tabBtn{
+    flex:1; padding:8px; border-radius:9px; border:1px solid var(--line);
+    background:var(--panel2); color:var(--muted); font-size:.78rem; font-weight:600;
+  }
+  .tabBtn.active{background:var(--teal); color:#04211c; border:none;}
+  .compendiumGrid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+  .compendiumItem{
+    aspect-ratio:1/1; border-radius:10px; background:var(--panel2); border:1px solid var(--line);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    font-size:1.3rem; padding:4px;
+  }
+  .compendiumItem.locked{opacity:.25;}
+  .compendiumItem .cname{font-size:.5rem; color:var(--muted); text-align:center; line-height:1.1;}
+  .recordRow{
+    display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line);
+    font-size:.85rem;
+  }
+  .recordRow .rval{color:var(--gold); font-weight:700;}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>AquaFusion <span style="font-size:.6em; color:var(--muted); font-weight:500;">— Bassin Sans Fin</span></h1>
-    <div class="biome" id="biomeName">—</div>
-    <div class="goal" id="goalText">—</div>
-  </header>
+<div class="aquarium-bg">
+  <div class="rays"></div>
+  <div class="bubbles" id="bubbles"></div>
+  <svg id="tank" viewBox="0 0 300 300" preserveAspectRatio="xMidYMid meet"></svg>
+</div>
 
-  <div class="stats">
-    <div class="stat"><div class="label">Perles 💠</div><div class="value gold" id="coinsVal">0</div></div>
-    <div class="stat"><div class="label">Revenu / s</div><div class="value" id="incomeVal">0</div></div>
-    <div class="stat"><div class="label">Poissons</div><div class="value" id="fishCountVal">0</div></div>
+<div class="hud-top">
+  <div class="hud-titlerow">
+    <div class="hud-title" id="biomeName">—</div>
+    <button class="iconBtn" id="journalBtn">📖</button>
   </div>
-
-  <div class="tankwrap">
-    <div class="rays"></div>
-    <div class="bubbles" id="bubbles"></div>
-    <svg id="tank" viewBox="0 0 300 300"></svg>
+  <div class="hud-pills">
+    <span class="pill gold">💠 <span id="coinsVal">0</span></span>
+    <span class="pill">/s <span id="incomeVal">0</span></span>
+    <span class="pill">🐟 <span id="fishCountVal">0</span></span>
   </div>
-
-  <div class="row" id="buyRow"></div>
-  <div class="row">
-    <button class="btn" id="speedBtn">Courant +<span class="sub" id="speedCost"></span></button>
-    <button class="btn" id="addFeederBtn">Nouvelle mangeoire<span class="sub" id="feederCost"></span></button>
-  </div>
-  <div class="row" id="checkpointBoostRow" style="display:none;">
-    <button class="btn" id="feederBoostBtn">Enrichir les mangeoires<span class="sub" id="feederBoostCost"></span></button>
-  </div>
-  <div class="row" id="oxygenRow" style="display:none;">
-    <button class="btn gold" id="oxygenBtn">Bulle d'oxygène</button>
-  </div>
-  <div class="toggle-row" id="autoFuseRow" style="display:none;">
-    <span>Auto-nourrisseur (fusion automatique)</span>
-    <div class="switch" id="autoFuseSwitch"><div class="knob"></div></div>
-  </div>
-
-  <div class="section-title">Poissons du bassin — fusion (3 identiques)</div>
-  <div class="fleet" id="fleet"></div>
-
-  <div class="footer">
-    <button class="reset" id="resetBtn">Réinitialiser toute la progression</button>
-  </div>
+  <div class="hud-line" id="goalText">—</div>
+  <div class="hud-line muted" id="questText">—</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -193,6 +234,37 @@
   </div>
 </div>
 
+<div class="overlay" id="journalOverlay">
+  <div class="card journalcard">
+    <button class="closeBtn" id="journalCloseBtn">✕</button>
+    <h2>Journal</h2>
+    <div class="journalTabs">
+      <button class="tabBtn active" id="tabCompendiumBtn">Compendium</button>
+      <button class="tabBtn" id="tabRecordsBtn">Records</button>
+      <button class="tabBtn" id="tabFleetBtn">Flotte</button>
+    </div>
+    <div id="compendiumPane"></div>
+    <div id="recordsPane" style="display:none;"></div>
+    <div id="fleetPane" style="display:none;">
+      <div class="fleet" id="fleet"></div>
+      <button class="reset" id="resetBtn">Réinitialiser toute la progression</button>
+    </div>
+  </div>
+</div>
+
+<div class="actionGrid" id="actionGrid">
+  <button class="abtn primary" id="fuseBtn">Fusionner<span class="sub" id="fuseCost"></span></button>
+  <button class="abtn primary" id="buyNormalBtn">Nouveau poisson<span class="sub" id="buyNormalCost"></span></button>
+  <button class="abtn" id="buyFastBtn" style="display:none;">⚡ Poisson rapide<span class="sub" id="buyFastCost"></span></button>
+  <button class="abtn" id="buySlowBtn" style="display:none;">🐢 Poisson lent<span class="sub" id="buySlowCost"></span></button>
+  <button class="abtn" id="speedBtn">Courant +<span class="sub" id="speedCost"></span></button>
+  <button class="abtn" id="incomeMultBtn">Multiplier perles<span class="sub" id="incomeMultCost"></span></button>
+  <button class="abtn" id="addFeederBtn">Nouvelle mangeoire<span class="sub" id="feederCost"></span></button>
+  <button class="abtn" id="feederBoostBtn" style="display:none;">Enrichir mangeoires<span class="sub" id="feederBoostCost"></span></button>
+  <button class="abtn" id="capacityBtn" style="display:none;">Agrandir le bassin<span class="sub" id="capacityCost"></span></button>
+  <button class="abtn gold" id="oxygenBtn" style="display:none;">Bulle d'oxygène</button>
+</div>
+
 <script>
 const CX=150, CY=150, R_OUT=112, R_IN=70, R_MID=(112+70)/2;
 const K = 2; // pacing global des revenus
@@ -204,14 +276,14 @@ const FISH_NAMES = ['Guppy','Tétra néon','Poisson rouge','Danio zébré','Pois
   'Requin-corail','Poulpe','Raie manta','Créature abyssale légendaire'];
 
 const BIOMES = [
-  {name:'Bassin tropical', sides:0, accent:'#4fd8c4'},
-  {name:'Récif corallien', sides:3, accent:'#ff6b81'},
-  {name:'Mangrove', sides:4, accent:'#7ec850'},
-  {name:'Forêt de kelp', sides:5, accent:'#3ddc97'},
-  {name:'Pleine mer', sides:6, accent:'#2f7fe0'},
-  {name:'Sources hydrothermales', sides:7, accent:'#ff8c42'},
-  {name:'Polaire', sides:8, accent:'#bfe9f5'},
-  {name:'Fosse abyssale', sides:9, accent:'#a06bff'},
+  {name:'Bassin tropical', sides:0, accent:'#4fd8c4', bg:'#0a3348'},
+  {name:'Récif corallien', sides:3, accent:'#ff6b81', bg:'#3a1030'},
+  {name:'Mangrove', sides:4, accent:'#7ec850', bg:'#16321a'},
+  {name:'Forêt de kelp', sides:5, accent:'#3ddc97', bg:'#0f2e2a'},
+  {name:'Pleine mer', sides:6, accent:'#2f7fe0', bg:'#081733'},
+  {name:'Sources hydrothermales', sides:7, accent:'#ff8c42', bg:'#3a1808'},
+  {name:'Polaire', sides:8, accent:'#bfe9f5', bg:'#0a2438'},
+  {name:'Fosse abyssale', sides:9, accent:'#a06bff', bg:'#05060d'},
 ];
 
 let state = null;
@@ -228,20 +300,123 @@ function defaultState(){
     fishBoughtCount: 2,
     speedLevel: 0,
     feederValueLevel: 0,
+    incomeMultLevel: 0,
+    capacityLevel: 0,
     feeders: [ {t:0} ],
-    autoFuseOn: false,
-    unlocked: { feederBoost:false, autoFuse:false, specialization:false, oxygen:false, schooling:false },
+    unlocked: { feederBoost:false, capacity:false, specialization:false, oxygen:false, schooling:false },
     prestige: { bassinsCompleted:0, revenueMult:1, costMult:1 },
+    bassinStartTime: Date.now(),
+    compendium: [1],
+    records: { bestBassinSeconds: null, biggestTier: 1 },
+    streak: { count: 0, lastPlayDate: null },
+    currentQuest: null,
+    questsCompletedInBassin: 0,
     lastSave: Date.now(),
   };
 }
 
+const QUESTS_PER_BASSIN = 3;
+
+const QUEST_TYPES = [
+  {
+    type:'fuse',
+    build:() => { const n = 1+Math.floor(Math.random()*2);
+      return { target:n, reward:40, labelText:`Fusionne ${n} fois` }; }
+  },
+  {
+    type:'buy',
+    build:() => { const n = Math.max(2, Math.ceil(state.fish.length*0.45));
+      return { target:n, reward:30, labelText:`Achète ${n} poissons` }; }
+  },
+  {
+    type:'perles',
+    // toujours ~20-35 secondes de revenu actuel, jamais trivial même très avancé
+    build:() => { const secs = 20+Math.floor(Math.random()*15);
+      const n = Math.max(20, Math.ceil(estIncomePerSec()*secs));
+      return { target:n, reward:Math.ceil(n*0.35), labelText:`Gagne ${fmt(n)} 💠` }; }
+  },
+  {
+    type:'reachtier',
+    // pousse un poisson au-delà de ton meilleur palier actuel dans ce bassin
+    build:() => { const best = state.fish.length ? Math.max(...state.fish.map(f=>f.tier)) : 1;
+      const goal = Math.min(fusionTarget(), best+1);
+      return { target:1, tierGoal:goal, reward:55, labelText:`Fais évoluer un poisson au palier ${goal} (${fishName(goal)})` }; }
+  },
+  {
+    type:'simultaneous',
+    // défi d'adresse/timing : faire coïncider 2 poissons sur la même mangeoire
+    build:() => ({ target:1, reward:50, labelText:`Fais passer 2 poissons sur la même mangeoire en même temps` })
+  },
+];
+
+function startNewQuest(){
+  const q = QUEST_TYPES[Math.floor(Math.random()*QUEST_TYPES.length)];
+  const built = q.build();
+  state.currentQuest = { type: q.type, target: built.target, tierGoal: built.tierGoal, progress: 0, claimed:false, reward: built.reward, labelText: built.labelText };
+}
+
+function todayStr(){
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+}
+
+function updateStreak(){
+  const today = todayStr();
+  const s = state.streak;
+  if (s.lastPlayDate !== today){
+    const y = new Date(Date.now() - 86400000);
+    const yStr = `${y.getFullYear()}-${y.getMonth()+1}-${y.getDate()}`;
+    s.count = (s.lastPlayDate === yStr) ? s.count+1 : 1;
+    s.lastPlayDate = today;
+  }
+}
+
+function checkBassinCompletable(){
+  const hasTargetFish = state.fish.some(f=>f.tier >= fusionTarget());
+  const questsOk = state.questsCompletedInBassin >= QUESTS_PER_BASSIN;
+  if (hasTargetFish && questsOk){
+    completeBassin();
+    return true;
+  }
+  return false;
+}
+
+function questProgress(kind, amount){
+  const q = state.currentQuest;
+  if (!q || q.type !== kind || q.claimed) return;
+  q.progress += amount;
+  if (q.progress >= q.target){
+    q.progress = q.target;
+    q.claimed = true;
+    state.coins += q.reward;
+    state.questsCompletedInBassin++;
+    showToast(`Quête accomplie ! +${q.reward} 💠 (${state.questsCompletedInBassin}/${QUESTS_PER_BASSIN})`);
+    startNewQuest();
+    checkBassinCompletable();
+  }
+}
+
+function discoverTier(t){
+  if (!state.compendium.includes(t)){
+    state.compendium.push(t);
+    state.compendium.sort((a,b)=>a-b);
+    showToast(`Nouvelle espèce découverte : ${fishName(t)} !`);
+  }
+  if (t > state.records.biggestTier) state.records.biggestTier = t;
+}
+
+function formatDuration(sec){
+  if (sec == null) return '—';
+  const m = Math.floor(sec/60), s = Math.round(sec%60);
+  return m>0 ? `${m}min ${s}s` : `${s}s`;
+}
+
 function biomeFor(bassinIndex){
   const idx = bassinIndex-1;
-  if (idx < BIOMES.length) return Object.assign({}, BIOMES[idx], {sides: BIOMES[idx].sides});
+  if (idx < BIOMES.length) return Object.assign({}, BIOMES[idx]);
   const extra = idx - (BIOMES.length-1);
   const base = BIOMES[BIOMES.length-1];
-  return { name: `Abysses mythiques ${extra}`, sides: 9+extra, accent: base.accent };
+  return { name: `Abysses mythiques ${extra}`, sides: 9+extra, accent: base.accent, bg: base.bg };
 }
 
 function fishName(t){
@@ -250,7 +425,20 @@ function fishName(t){
 }
 function tierValue(t){ return Math.pow(3, t-1); }
 function fishHue(t){ return (170 + t*20) % 360; }
-function fishColor(t){ return `hsl(${fishHue(t)} 70% 58%)`; }
+function fishColor(t){
+  if (t===13) return '#7c8ba0';
+  if (t===14) return '#b05fd6';
+  if (t===15) return '#5b93e0';
+  if (t>=16) return '#2c2350';
+  return `hsl(${fishHue(t)} 70% 58%)`;
+}
+function fishColorLight(t){
+  if (t===13) return '#aeb9c8';
+  if (t===14) return '#dba8ef';
+  if (t===15) return '#a9cdf5';
+  if (t>=16) return '#5d4894';
+  return `hsl(${fishHue(t)} 78% 78%)`;
+}
 
 function typeSpeedMult(type){ return type==='fast' ? 1.55 : type==='slow' ? 0.6 : 1; }
 function typeValueMult(type){ return type==='fast' ? 0.6 : type==='slow' ? 1.65 : 1; }
@@ -263,20 +451,23 @@ function angleSpeedBase(){
   return BASE_SPEED * (1 + state.speedLevel*0.2) * boosted;
 }
 
-function costFish(){ return Math.ceil(8 * Math.pow(1.12, state.fish.length) * state.prestige.costMult); }
+function costFish(){ return Math.ceil(8 * Math.pow(1.08, state.fishBoughtCount) * state.prestige.costMult); }
 function costSpeed(){ return Math.ceil(28 * Math.pow(1.45, state.speedLevel) * state.prestige.costMult); }
 function costFeederBoost(){ return Math.ceil(45 * Math.pow(1.55, state.feederValueLevel) * state.prestige.costMult); }
+function costIncomeMult(){ return Math.ceil(40 * Math.pow(1.5, state.incomeMultLevel) * state.prestige.costMult); }
+function costCapacity(){ return Math.ceil(60 * Math.pow(1.7, state.capacityLevel) * state.prestige.costMult); }
 function costNewFeeder(){ return Math.ceil(180 * Math.pow(2.2, state.feeders.length-1) * state.prestige.costMult); }
 function costFuse(t){ return Math.ceil(14 * Math.pow(1.9, t-1) * state.prestige.costMult); }
-function maxFish(){ return Math.min(30, 10 + state.bassinIndex*2); }
+function maxFish(){ return Math.min(40, 10 + state.bassinIndex*2 + state.capacityLevel*2); }
 function maxFeeders(){ const b = biomeFor(state.bassinIndex); return b.sides===0 ? 8 : Math.min(12, b.sides*2); }
 
 function feederValue(){ return (1 + state.feederValueLevel*0.3) * state.prestige.revenueMult; }
+function incomeMult(){ return 1 + state.incomeMultLevel*0.15; }
 
 function checkUnlocks(){
   const u = state.unlocked;
   if (state.bassinIndex >= 2) u.feederBoost = true;
-  if (state.bassinIndex >= 3) u.autoFuse = true;
+  if (state.bassinIndex >= 3) u.capacity = true;
   if (state.bassinIndex >= 4) u.specialization = true;
   if (state.bassinIndex >= 5) u.oxygen = true;
   if (state.bassinIndex >= 6) u.schooling = true;
@@ -357,9 +548,10 @@ function simulate(dt){
     const schoolBonus = state.unlocked.schooling && group.length > 1 ? (1 + 0.25*(group.length-1)) : 1;
     let groupEarned = 0;
     for (const f of group){
-      groupEarned += tierValue(f.tier) * typeValueMult(f.type) * feederValue() * K * schoolBonus;
+      groupEarned += tierValue(f.tier) * typeValueMult(f.type) * feederValue() * incomeMult() * K * schoolBonus;
     }
     earned += groupEarned;
+    if (group.length > 1) questProgress('simultaneous', 1);
     const feeder = state.feeders[fi];
     if (feeder){
       const p = positionAtT(feeder.t, biome.sides, R_OUT+12, 0);
@@ -367,7 +559,7 @@ function simulate(dt){
       spawnRipple(p.x, p.y, biome.accent);
     }
   }
-  if (earned > 0) state.coins += earned;
+  if (earned > 0){ state.coins += earned; questProgress('perles', earned); }
 }
 
 function spawnRipple(x, y, color){
@@ -411,12 +603,14 @@ function estIncomePerSec(){
   const loopsPerSec = angleSpeedBase()/360;
   const feedSum = state.feeders.length * feederValue();
   const fishSum = state.fish.reduce((s,f)=> s + tierValue(f.tier)*typeValueMult(f.type)*typeSpeedMult(f.type), 0);
-  return loopsPerSec * feedSum * fishSum * K;
+  return loopsPerSec * feedSum * fishSum * incomeMult() * K;
 }
 
 // ---- rendering ----
 function buildTankStatic(){
   const biome = biomeFor(state.bassinIndex);
+  const wrap = document.querySelector('.aquarium-bg');
+  if (wrap) wrap.style.background = `linear-gradient(180deg, ${biome.bg} 0%, #04070c 100%)`;
   const svg = document.getElementById('tank');
   let html = `<g opacity="0.55">
     <path d="M20,290 Q14,258 25,233 Q9,212 22,186" stroke="#2fae6b" stroke-width="4" fill="none" stroke-linecap="round"/>
@@ -449,6 +643,104 @@ function buildTankStatic(){
   buildFishLayer();
 }
 
+function fishMarkup(f, size){
+  const t = f.tier;
+  const c = fishColor(t), cl = fishColorLight(t);
+  if (t === 14) return octopusMarkup(size, c, cl);
+  if (t === 15) return rayMarkup(size, c, cl);
+  if (t === 13) return sharkMarkup(size, c, cl);
+  if (t >= 16) return abyssalMarkup(size, c, cl);
+  return standardFishMarkup(t, size, c, cl);
+}
+
+function standardFishMarkup(t, size, c, cl){
+  let extra = '';
+  let finScale = 1;
+  if (t >= 5 && t <= 8){
+    // bande "clown/papillon" : rayure claire sur le corps
+    extra += `<rect x="${-size*0.25}" y="${-size*0.9}" width="${size*0.32}" height="${size*1.8}" fill="#ffffff" opacity="0.5" rx="${size*0.14}"/>`;
+  }
+  if (t >= 9 && t <= 12){
+    // bande "fantaisie" : nageoires plus amples
+    finScale = 1.55;
+    extra += `<polygon points="${-size*0.2},${size*0.75} ${size*0.05},${size*1.25} ${size*0.3},${size*0.7}" fill="${c}" opacity="0.85"/>`;
+  }
+  return `
+    <ellipse cx="${-size*0.15}" cy="${size*0.32}" rx="${size*1.05}" ry="${size*0.4}" fill="${cl}" opacity="0.5"/>
+    <path d="M ${-size*1.6},0 C ${-size*1.6},${-size*0.95} ${size*0.55},${-size*0.95} ${size*1.15},0 C ${size*0.55},${size*0.95} ${-size*1.6},${size*0.95} ${-size*1.6},0 Z" fill="${c}"/>
+    ${extra}
+    <polygon points="${-size*0.3},${-size*0.85*finScale} ${size*0.15},${-size*1.35*finScale} ${size*0.35},${-size*0.75*finScale}" fill="${c}" opacity="0.9"/>
+    <g transform="translate(${-size*1.55},0)">
+      <polygon points="0,0 ${-size*0.9},${-size*0.65} ${-size*0.9},${size*0.65}" fill="${c}">
+        <animateTransform attributeName="transform" type="rotate" values="-16 0 0;16 0 0;-16 0 0" dur="0.55s" repeatCount="indefinite"/>
+      </polygon>
+    </g>
+    <ellipse cx="${size*0.1}" cy="${-size*0.35}" rx="${size*0.5}" ry="${size*0.22}" fill="#ffffff" opacity="0.22"/>
+    <circle cx="${size*0.65}" cy="${-size*0.12}" r="${Math.max(1,size*0.13)}" fill="#04211c"/>
+  `;
+}
+
+function sharkMarkup(size, c, cl){
+  return `
+    <ellipse cx="${-size*0.1}" cy="${size*0.3}" rx="${size*1.1}" ry="${size*0.38}" fill="${cl}" opacity="0.5"/>
+    <path d="M ${-size*1.7},0 C ${-size*1.7},${-size*0.8} ${size*0.9},${-size*0.55} ${size*1.5},0 C ${size*0.9},${size*0.7} ${-size*1.7},${size*0.8} ${-size*1.7},0 Z" fill="${c}"/>
+    <polygon points="${-size*0.15},${-size*0.8} ${size*0.05},${-size*1.7} ${size*0.4},${-size*0.7}" fill="${c}"/>
+    <path d="M ${-size*1.65},0 Q ${-size*2.15},${-size*0.55} ${-size*2.05},0 Q ${-size*2.15},${size*0.55} ${-size*1.65},0 Z" fill="${c}"/>
+    <circle cx="${size*0.85}" cy="${-size*0.1}" r="${Math.max(1,size*0.1)}" fill="#04211c"/>
+  `;
+}
+
+function octopusMarkup(size, c, cl){
+  let tentacles = '';
+  for (let i=0;i<5;i++){
+    const a = -55 + i*27;
+    const rad = a*Math.PI/180;
+    const tx = Math.cos(rad)*size*1.5, ty = size*0.9 + Math.sin(rad)*size*0.5;
+    tentacles += `<path d="M0,${size*0.6} Q ${tx*0.5},${size*1.3} ${tx},${ty}" stroke="${c}" stroke-width="${size*0.32}" fill="none" stroke-linecap="round">
+      <animate attributeName="d" dur="${1+i*0.1}s" repeatCount="indefinite"
+        values="M0,${size*0.6} Q ${tx*0.5},${size*1.3} ${tx},${ty};M0,${size*0.6} Q ${tx*0.6},${size*1.1} ${tx*0.9},${ty*0.8};M0,${size*0.6} Q ${tx*0.5},${size*1.3} ${tx},${ty}"/>
+    </path>`;
+  }
+  return `
+    ${tentacles}
+    <ellipse cx="0" cy="${-size*0.1}" rx="${size*1.15}" ry="${size*0.95}" fill="${c}"/>
+    <ellipse cx="${-size*0.25}" cy="${-size*0.35}" rx="${size*0.5}" ry="${size*0.35}" fill="${cl}" opacity="0.5"/>
+    <circle cx="${size*0.35}" cy="${-size*0.3}" r="${size*0.16}" fill="#04211c"/>
+    <circle cx="${-size*0.25}" cy="${-size*0.3}" r="${size*0.16}" fill="#04211c"/>
+  `;
+}
+
+function rayMarkup(size, c, cl){
+  return `
+    <polygon points="0,${-size*0.3} ${size*1.5},${size*0.5} 0,${size*1.15} ${-size*1.5},${size*0.5}" fill="${c}">
+      <animateTransform attributeName="transform" type="scale" values="1,0.85;1,1.05;1,0.85" dur="1.4s" repeatCount="indefinite" additive="sum"/>
+    </polygon>
+    <ellipse cx="0" cy="${size*0.1}" rx="${size*0.4}" ry="${size*0.3}" fill="${cl}" opacity="0.6"/>
+    <path d="M0,${size*1.1} Q ${size*0.3},${size*1.6} 0,${size*2}" stroke="${c}" stroke-width="${size*0.14}" fill="none" stroke-linecap="round"/>
+    <circle cx="${-size*0.2}" cy="${-size*0.05}" r="${Math.max(1,size*0.09)}" fill="#04211c"/>
+    <circle cx="${size*0.2}" cy="${-size*0.05}" r="${Math.max(1,size*0.09)}" fill="#04211c"/>
+  `;
+}
+
+function abyssalMarkup(size, c, cl){
+  const dots = [[-size*0.9,0],[-size*0.3,size*0.5],[size*0.4,-size*0.4],[size*0.9,size*0.2]]
+    .map(([x,y],i) => `<circle cx="${x}" cy="${y}" r="${size*0.09}" fill="${cl}">
+      <animate attributeName="opacity" values="0.2;1;0.2" dur="${1.2+i*0.3}s" repeatCount="indefinite"/>
+    </circle>`).join('');
+  return `
+    <path d="M ${-size*1.7},0 C ${-size*1.7},${-size*1.05} ${size*0.6},${-size*1.05} ${size*1.25},0 C ${size*0.6},${size*1.05} ${-size*1.7},${size*1.05} ${-size*1.7},0 Z" fill="${c}"/>
+    <g transform="translate(${-size*1.65},0)">
+      <polygon points="0,0 ${-size*1.0},${-size*0.7} ${-size*1.0},${size*0.7}" fill="${c}">
+        <animateTransform attributeName="transform" type="rotate" values="-12 0 0;12 0 0;-12 0 0" dur="0.8s" repeatCount="indefinite"/>
+      </polygon>
+    </g>
+    ${dots}
+    <circle cx="${size*0.7}" cy="${-size*0.1}" r="${Math.max(1,size*0.14)}" fill="#ffe27a">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite"/>
+    </circle>
+  `;
+}
+
 function buildFishLayer(){
   const layer = document.getElementById('fishLayer');
   layer.innerHTML = '';
@@ -457,18 +749,7 @@ function buildFishLayer(){
     g.setAttribute('id','fish'+i);
     g.setAttribute('class','fish');
     const size = 6 + Math.min(7, f.tier*0.5);
-    const c = fishColor(f.tier);
-    g.innerHTML = `
-      <path d="M ${-size*1.6},0 C ${-size*1.6},${-size*0.95} ${size*0.55},${-size*0.95} ${size*1.15},0 C ${size*0.55},${size*0.95} ${-size*1.6},${size*0.95} ${-size*1.6},0 Z" fill="${c}"/>
-      <polygon points="${-size*0.3},${-size*0.85} ${size*0.15},${-size*1.35} ${size*0.35},${-size*0.75}" fill="${c}" opacity="0.9"/>
-      <g transform="translate(${-size*1.55},0)">
-        <polygon points="0,0 ${-size*0.9},${-size*0.65} ${-size*0.9},${size*0.65}" fill="${c}">
-          <animateTransform attributeName="transform" type="rotate" values="-16 0 0;16 0 0;-16 0 0" dur="0.55s" repeatCount="indefinite"/>
-        </polygon>
-      </g>
-      <ellipse cx="${size*0.1}" cy="${-size*0.35}" rx="${size*0.5}" ry="${size*0.22}" fill="#ffffff" opacity="0.22"/>
-      <circle cx="${size*0.65}" cy="${-size*0.12}" r="${Math.max(1,size*0.13)}" fill="#04211c"/>
-    `;
+    g.innerHTML = fishMarkup(f, size);
     layer.appendChild(g);
   });
   positionFish();
@@ -484,13 +765,46 @@ function positionFish(){
   });
 }
 
+function findFusableGroup(){
+  const groups = {};
+  for (const f of state.fish){
+    const key = f.tier+'_'+f.type;
+    if (!groups[key]) groups[key] = { tier:f.tier, type:f.type, count:0 };
+    groups[key].count++;
+  }
+  const keys = Object.keys(groups).filter(k=>groups[k].count>=3).sort((a,b)=>groups[a].tier-groups[b].tier);
+  return keys.length ? groups[keys[0]] : null;
+}
+
+function doAutoFuse(){
+  const g = findFusableGroup();
+  if (!g){ showToast('Pas assez de poissons identiques pour fusionner (3 minimum)'); return; }
+  const ok = fuseGroup(g.tier, g.type);
+  if (!ok) showToast('Pas assez de perles pour cette fusion');
+}
+
 function render(){
   const biome = biomeFor(state.bassinIndex);
   document.getElementById('biomeName').textContent = `Bassin ${state.bassinIndex} — ${biome.name}`;
-  document.getElementById('goalText').textContent = `Objectif : faire évoluer un poisson jusqu'au palier ${fusionTarget()} (${fishName(fusionTarget())})`;
+  document.getElementById('goalText').textContent = `Objectif : palier ${fusionTarget()} (${fishName(fusionTarget())}) + ${QUESTS_PER_BASSIN} quêtes du bassin`;
   document.getElementById('coinsVal').textContent = fmt(state.coins);
   document.getElementById('incomeVal').textContent = fmt(estIncomePerSec());
   document.getElementById('fishCountVal').textContent = `${state.fish.length}/${maxFish()}`;
+
+  const q = state.currentQuest;
+  const questProgressText = q ? `${q.labelText} (${Math.min(q.progress, q.target)}/${q.target})` : '—';
+  document.getElementById('questText').textContent = `🔥${state.streak.count} · Quêtes ${state.questsCompletedInBassin}/${QUESTS_PER_BASSIN} — ${questProgressText}`;
+
+  const fuseBtn = document.getElementById('fuseBtn');
+  const fusable = findFusableGroup();
+  if (fusable){
+    const fc = costFuse(fusable.tier);
+    fuseBtn.disabled = state.coins < fc;
+    document.getElementById('fuseCost').textContent = `${fishName(fusable.tier)} → ${fmt(fc)} 💠`;
+  } else {
+    fuseBtn.disabled = true;
+    document.getElementById('fuseCost').textContent = 'aucun groupe de 3';
+  }
 
   renderBuyRow();
 
@@ -498,50 +812,61 @@ function render(){
   speedBtn.disabled = state.coins < costSpeed();
   document.getElementById('speedCost').textContent = fmt(costSpeed())+' 💠';
 
+  const incomeMultBtn = document.getElementById('incomeMultBtn');
+  incomeMultBtn.disabled = state.coins < costIncomeMult();
+  document.getElementById('incomeMultCost').textContent = fmt(costIncomeMult())+' 💠';
+
   const feederBtn = document.getElementById('addFeederBtn');
   const feedersMaxed = state.feeders.length >= maxFeeders();
   feederBtn.disabled = state.coins < costNewFeeder() || feedersMaxed;
   document.getElementById('feederCost').textContent = feedersMaxed ? 'Max' : fmt(costNewFeeder())+' 💠';
 
-  document.getElementById('checkpointBoostRow').style.display = state.unlocked.feederBoost ? 'flex' : 'none';
+  const feederBoostBtn = document.getElementById('feederBoostBtn');
+  feederBoostBtn.style.display = state.unlocked.feederBoost ? 'block' : 'none';
   if (state.unlocked.feederBoost){
-    const b = document.getElementById('feederBoostBtn');
-    b.disabled = state.coins < costFeederBoost();
+    feederBoostBtn.disabled = state.coins < costFeederBoost();
     document.getElementById('feederBoostCost').textContent = fmt(costFeederBoost())+' 💠';
   }
 
-  document.getElementById('oxygenRow').style.display = state.unlocked.oxygen ? 'flex' : 'none';
+  const capBtn = document.getElementById('capacityBtn');
+  capBtn.style.display = state.unlocked.capacity ? 'block' : 'none';
+  if (state.unlocked.capacity){
+    const capMaxed = maxFish() >= 40;
+    capBtn.disabled = state.coins < costCapacity() || capMaxed;
+    document.getElementById('capacityCost').textContent = capMaxed ? 'Max' : fmt(costCapacity())+' 💠 (+2)';
+  }
+
+  const ob = document.getElementById('oxygenBtn');
+  ob.style.display = state.unlocked.oxygen ? 'block' : 'none';
   if (state.unlocked.oxygen){
-    const ob = document.getElementById('oxygenBtn');
     const onCooldown = Date.now() < oxygenCooldownUntil;
     ob.disabled = onCooldown;
     ob.textContent = onCooldown ? `Recharge... ${Math.ceil((oxygenCooldownUntil-Date.now())/1000)}s` : "Bulle d'oxygène (x2 vitesse, 8s)";
   }
 
-  document.getElementById('autoFuseRow').style.display = state.unlocked.autoFuse ? 'flex' : 'none';
-  document.getElementById('autoFuseSwitch').classList.toggle('on', !!state.autoFuseOn);
-
   renderFleet();
 }
 
 function renderBuyRow(){
-  const row = document.getElementById('buyRow');
-  row.innerHTML = '';
   const atCap = state.fish.length >= maxFish();
   const c = costFish();
+  const normalBtn = document.getElementById('buyNormalBtn');
+  const fastBtn = document.getElementById('buyFastBtn');
+  const slowBtn = document.getElementById('buySlowBtn');
   if (!state.unlocked.specialization){
-    row.innerHTML = `<button class="btn primary" id="buyNormalBtn">Nouveau poisson<span class="sub">${atCap?'Bassin plein':fmt(c)+' 💠'}</span></button>`;
-    document.getElementById('buyNormalBtn').disabled = state.coins < c || atCap;
-    document.getElementById('buyNormalBtn').onclick = () => buyFish('normal');
+    normalBtn.style.display = 'block';
+    fastBtn.style.display = 'none';
+    slowBtn.style.display = 'none';
+    normalBtn.disabled = state.coins < c || atCap;
+    document.getElementById('buyNormalCost').textContent = atCap ? 'Bassin plein' : fmt(c)+' 💠';
   } else {
-    row.innerHTML = `
-      <button class="btn primary" id="buyFastBtn">⚡ Poisson rapide<span class="sub">${atCap?'Plein':fmt(c)+' 💠'}</span></button>
-      <button class="btn primary" id="buySlowBtn">🐢 Poisson lent<span class="sub">${atCap?'Plein':fmt(c)+' 💠'}</span></button>
-    `;
-    document.getElementById('buyFastBtn').disabled = state.coins < c || atCap;
-    document.getElementById('buySlowBtn').disabled = state.coins < c || atCap;
-    document.getElementById('buyFastBtn').onclick = () => buyFish('fast');
-    document.getElementById('buySlowBtn').onclick = () => buyFish('slow');
+    normalBtn.style.display = 'none';
+    fastBtn.style.display = 'block';
+    slowBtn.style.display = 'block';
+    fastBtn.disabled = state.coins < c || atCap;
+    slowBtn.disabled = state.coins < c || atCap;
+    document.getElementById('buyFastCost').textContent = atCap ? 'Plein' : fmt(c)+' 💠';
+    document.getElementById('buySlowCost').textContent = atCap ? 'Plein' : fmt(c)+' 💠';
   }
 }
 
@@ -582,6 +907,7 @@ function buyFish(type){
   state.coins -= c;
   state.fishBoughtCount++;
   state.fish.push({tier:1, t: Math.random(), type: state.unlocked.specialization ? type : 'normal'});
+  questProgress('buy', 1);
   dirty = true;
   buildTankStatic();
   render();
@@ -601,6 +927,25 @@ function buyFeederBoost(){
   if (state.coins < c) return;
   state.coins -= c;
   state.feederValueLevel++;
+  dirty = true;
+  render();
+}
+
+function buyIncomeMult(){
+  const c = costIncomeMult();
+  if (state.coins < c) return;
+  state.coins -= c;
+  state.incomeMultLevel++;
+  dirty = true;
+  render();
+}
+
+function buyCapacity(){
+  if (maxFish() >= 40) return;
+  const c = costCapacity();
+  if (state.coins < c) return;
+  state.coins -= c;
+  state.capacityLevel++;
   dirty = true;
   render();
 }
@@ -636,32 +981,24 @@ function fuseGroup(tier, type){
   state.fish = state.fish.filter((_,i)=>!idxs.includes(i));
   const newTier = tier+1;
   state.fish.push({tier:newTier, t:avgT, type});
+  questProgress('fuse', 1);
+  if (state.currentQuest && state.currentQuest.type === 'reachtier' && newTier >= state.currentQuest.tierGoal){
+    questProgress('reachtier', 1);
+  }
+  discoverTier(newTier);
   dirty = true;
   if (newTier >= fusionTarget()){
-    completeBassin();
+    if (!checkBassinCompletable()){
+      const remaining = QUESTS_PER_BASSIN - state.questsCompletedInBassin;
+      showToast(`Palier atteint ! Encore ${remaining} quête(s) à valider pour passer au bassin suivant`);
+      buildTankStatic();
+      render();
+    }
   } else {
     buildTankStatic();
     render();
   }
   return true;
-}
-
-function autoFuseTick(){
-  if (!state.autoFuseOn || !state.unlocked.autoFuse) return;
-  const groups = {};
-  for (const f of state.fish){
-    const key = f.tier+'_'+f.type;
-    if (!groups[key]) groups[key] = { tier:f.tier, type:f.type, count:0 };
-    groups[key].count++;
-  }
-  const keys = Object.keys(groups).sort((a,b)=> groups[a].tier - groups[b].tier);
-  for (const k of keys){
-    const g = groups[k];
-    if (g.count >= 3 && state.coins >= costFuse(g.tier)){
-      fuseGroup(g.tier, g.type);
-      break; // une seule fusion auto par tick pour rester lisible
-    }
-  }
 }
 
 function useOxygen(){
@@ -673,11 +1010,17 @@ function useOxygen(){
 }
 
 function completeBassin(){
+  const elapsed = (Date.now() - state.bassinStartTime) / 1000;
+  let recordText = '';
+  if (state.records.bestBassinSeconds === null || elapsed < state.records.bestBassinSeconds){
+    state.records.bestBassinSeconds = elapsed;
+    recordText = ' — nouveau record de vitesse !';
+  }
   state.prestige.bassinsCompleted++;
   state.prestige.revenueMult = 1 + 0.1*state.prestige.bassinsCompleted;
   state.prestige.costMult = Math.max(0.5, 1 - 0.03*state.prestige.bassinsCompleted);
   document.getElementById('overlayTitle').textContent = 'Bassin complété !';
-  document.getElementById('overlaySub').textContent = `Vous passez au bassin ${state.bassinIndex+1}.`;
+  document.getElementById('overlaySub').textContent = `Bouclé en ${formatDuration(elapsed)}${recordText} Vous passez au bassin ${state.bassinIndex+1}.`;
   document.getElementById('overlayBonus').textContent = `Revenu global x${state.prestige.revenueMult.toFixed(2)}, coûts x${state.prestige.costMult.toFixed(2)}`;
   document.getElementById('overlay').classList.add('show');
   saveState();
@@ -690,7 +1033,12 @@ function startNewBassin(){
   state.fishBoughtCount = 2;
   state.speedLevel = 0;
   state.feederValueLevel = 0;
+  state.incomeMultLevel = 0;
+  state.capacityLevel = 0;
   state.feeders = [ {t:0} ];
+  state.bassinStartTime = Date.now();
+  state.questsCompletedInBassin = 0;
+  startNewQuest();
   checkUnlocks();
   document.getElementById('overlay').classList.remove('show');
   dirty = true;
@@ -713,7 +1061,6 @@ function loop(ts){
 let tickCounter = 0;
 function uiTick(){
   tickCounter++;
-  autoFuseTick();
   render();
   dirty = true;
   if (tickCounter % 3 === 0){ saveState(); }
@@ -752,6 +1099,10 @@ async function loadState(){
       state = Object.assign(defaultState(), loaded);
       state.unlocked = Object.assign(defaultState().unlocked, loaded.unlocked||{});
       state.prestige = Object.assign(defaultState().prestige, loaded.prestige||{});
+      state.records = Object.assign(defaultState().records, loaded.records||{});
+      state.streak = Object.assign(defaultState().streak, loaded.streak||{});
+      state.compendium = loaded.compendium || [1];
+      state.bassinStartTime = loaded.bassinStartTime || Date.now();
       const elapsedSec = Math.max(0, Math.min(OFFLINE_CAP_SEC, (Date.now()-(loaded.lastSave||Date.now()))/1000));
       if (elapsedSec > 5){
         const earned = estIncomePerSec()*elapsedSec;
@@ -765,6 +1116,9 @@ async function loadState(){
     state = defaultState();
   }
   checkUnlocks();
+  updateStreak();
+  if (state.questsCompletedInBassin == null) state.questsCompletedInBassin = 0;
+  if (!state.currentQuest) startNewQuest();
 }
 
 function spawnBubbles(){
@@ -784,24 +1138,75 @@ function spawnBubbles(){
   }
 }
 
+function renderCompendium(){
+  const pane = document.getElementById('compendiumPane');
+  const maxNamed = FISH_NAMES.length;
+  let html = `<div class="compendiumGrid">`;
+  for (let t=1; t<=maxNamed; t++){
+    const found = state.compendium.includes(t);
+    html += `<div class="compendiumItem ${found?'':'locked'}">
+      <div>${found ? '🐟' : '❓'}</div>
+      <div class="cname">${found ? fishName(t) : '???'}</div>
+    </div>`;
+  }
+  html += `</div><p style="color:var(--muted); font-size:.75rem; margin-top:12px;">
+    ${state.compendium.filter(t=>t<=maxNamed).length}/${maxNamed} espèces découvertes
+    ${state.compendium.some(t=>t>maxNamed) ? ' + espèces légendaires au-delà' : ''}
+  </p>`;
+  pane.innerHTML = html;
+}
+
+function renderRecords(){
+  const pane = document.getElementById('recordsPane');
+  pane.innerHTML = `
+    <div class="recordRow"><span>Bassin le plus rapide</span><span class="rval">${formatDuration(state.records.bestBassinSeconds)}</span></div>
+    <div class="recordRow"><span>Plus gros poisson jamais atteint</span><span class="rval">${fishName(state.records.biggestTier)} (palier ${state.records.biggestTier})</span></div>
+    <div class="recordRow"><span>Bassins complétés au total</span><span class="rval">${state.prestige.bassinsCompleted}</span></div>
+    <div class="recordRow" style="border-bottom:none;"><span>Série de jours joués</span><span class="rval">${state.streak.count} 🔥</span></div>
+  `;
+}
+
+function openJournal(){
+  renderCompendium();
+  renderRecords();
+  document.getElementById('journalOverlay').classList.add('show');
+}
+
+function switchJournalTab(tab){
+  const tabs = { compendium: 'tabCompendiumBtn', records: 'tabRecordsBtn', fleet: 'tabFleetBtn' };
+  const panes = { compendium: 'compendiumPane', records: 'recordsPane', fleet: 'fleetPane' };
+  for (const k in tabs){
+    document.getElementById(tabs[k]).classList.toggle('active', k === tab);
+    document.getElementById(panes[k]).style.display = (k === tab) ? 'block' : 'none';
+  }
+}
+
 async function init(){
   await loadState();
   buildTankStatic();
   spawnBubbles();
   render();
 
+  document.getElementById('fuseBtn').onclick = doAutoFuse;
+  document.getElementById('buyNormalBtn').onclick = () => buyFish('normal');
+  document.getElementById('buyFastBtn').onclick = () => buyFish('fast');
+  document.getElementById('buySlowBtn').onclick = () => buyFish('slow');
   document.getElementById('speedBtn').onclick = buySpeed;
+  document.getElementById('incomeMultBtn').onclick = buyIncomeMult;
   document.getElementById('addFeederBtn').onclick = addFeeder;
   document.getElementById('feederBoostBtn').onclick = buyFeederBoost;
+  document.getElementById('capacityBtn').onclick = buyCapacity;
   document.getElementById('oxygenBtn').onclick = useOxygen;
-  document.getElementById('autoFuseSwitch').onclick = () => {
-    state.autoFuseOn = !state.autoFuseOn;
-    dirty = true;
-    render();
-  };
   document.getElementById('overlayBtn').onclick = startNewBassin;
+  document.getElementById('journalBtn').onclick = openJournal;
+  document.getElementById('journalCloseBtn').onclick = () => {
+    document.getElementById('journalOverlay').classList.remove('show');
+  };
+  document.getElementById('tabCompendiumBtn').onclick = () => switchJournalTab('compendium');
+  document.getElementById('tabRecordsBtn').onclick = () => switchJournalTab('records');
+  document.getElementById('tabFleetBtn').onclick = () => switchJournalTab('fleet');
   document.getElementById('resetBtn').onclick = () => {
-    if (confirm('Réinitialiser toute la progression, y compris les bonus de prestige ?')){
+    if (confirm('Réinitialiser toute la progression, y compris les bonus de prestige, le compendium et les records ?')){
       state = defaultState();
       dirty = true;
       buildTankStatic();
