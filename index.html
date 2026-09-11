@@ -131,6 +131,12 @@
     50%{ opacity:.6; }
   }
   .fishSway{ animation-name:fishSway; animation-timing-function:ease-in-out; animation-iteration-count:infinite; transform-box:fill-box; transform-origin:50% 50%; }
+  .fishBounce{ animation:fishBounce .35s ease-out; transform-box:fill-box; transform-origin:50% 50%; }
+  @keyframes fishBounce{
+    0%{ transform:scale(1); }
+    40%{ transform:scale(1.35); }
+    100%{ transform:scale(1); }
+  }
   @keyframes fishSway{
     0%,100%{ transform:rotate(-4deg); }
     50%{ transform:rotate(4deg); }
@@ -466,6 +472,8 @@ let state = null;
 let dirty = false;
 let lastFrame = null;
 let oxygenActiveUntil = 0;
+let lastInteractionTime = Date.now();
+let sessionStartTime = Date.now();
 let oxygenCooldownUntil = 0;
 
 function defaultState(){
@@ -494,7 +502,9 @@ function defaultState(){
       fusionsByTier:{}, coinsByTier:{}, maxSimultaneousByTier:{},
       totalCoinsEarnedLifetime:0, maxFishCountEver:0, totalUpgradesBought:0, lastFusionTimestamps:[],
       everHadOneFish:false, everChainReaction:false, everPerfectFusion:false, everWaited60s:false,
-      everOffline1h:false, everOffline8h:false, everOfflineMillion:false, everOffline3days:false },
+      everOffline1h:false, everOffline8h:false, everOfflineMillion:false, everOffline3days:false,
+      totalLoopsCompleted:0, octopusClicks:0, everClickedFishTenTimes:false, everInactive2min:false,
+      everPlayed2hSession:false },
     discoveryDates: {},
     masteryUnlocked: [],
     achievementsUnlocked: [],
@@ -538,6 +548,13 @@ const ACHIEVEMENTS = [
   { id:'offline_8h', name:'Bonne nuit les poissons', desc:'Gagne des perles après 8h d\'absence', reward:4, check:(s)=>s.stats.everOffline8h },
   { id:'offline_million', name:'Ils ont travaillé pendant que je dormais', desc:'Récupère 1 million de perles en une fois hors-ligne', reward:8, check:(s)=>s.stats.everOfflineMillion },
   { id:'offline_3days', name:'Absence prolongée', desc:'Reviens après 3 jours d\'absence', reward:6, check:(s)=>s.stats.everOffline3days },
+  { id:'pas_le_requin', name:'Pas le requin !', desc:'Fusionne un Requin-corail', reward:4, check:(s)=>(s.stats.fusionsByTier[13]||0)>=1 },
+  { id:'encore', name:'Encore.', desc:'Fusionne 10 fois depuis le même palier', reward:4, check:(s)=>Math.max(0,...Object.values(s.stats.fusionsByTier||{}))>=10 },
+  { id:'ca_tourne_en_rond', name:'Ça tourne en rond', desc:'Fais effectuer 100 tours de bassin à tes poissons, cumulés', reward:3, check:(s)=>s.stats.totalLoopsCompleted>=100 },
+  { id:'deux_heures', name:'J\'aurais dû dormir', desc:'Joue 2 heures d\'affilée', reward:5, check:(s)=>s.stats.everPlayed2hSession },
+  { id:'poisson_regarde', name:'Le poisson qui regardait', secret:true, desc:'Clique 10 fois de suite sur le même poisson', reward:4, check:(s)=>s.stats.everClickedFishTenTimes },
+  { id:'huit_bras', name:'Le poulpe a huit bras', secret:true, desc:'Clique 8 fois sur un poulpe', reward:4, check:(s)=>s.stats.octopusClicks>=8 },
+  { id:'il_vous_observe', name:'Il vous observe', secret:true, desc:'Reste 2 minutes sans toucher l\'écran', reward:3, check:(s)=>s.stats.everInactive2min },
 ];
 
 function checkAchievements(){
@@ -828,6 +845,7 @@ function simulate(dt){
       }
     }
     f.t = next;
+    if (next < prev) state.stats.totalLoopsCompleted++;
   }
   let earned = 0;
   const biome = biomeFor(state.bassinIndex);
@@ -1054,13 +1072,40 @@ function buildFishLayer(){
     const g = document.createElementNS('http://www.w3.org/2000/svg','g');
     g.setAttribute('id','fish'+i);
     g.setAttribute('class','fish');
+    g.style.cursor = 'pointer';
     const size = 6 + Math.min(7, f.tier*0.5);
     const delay = (i % 7) * -0.31;
     const dur = 2.1 + (i % 5)*0.18;
-    g.innerHTML = `<g class="fishSway" style="animation-delay:${delay}s; animation-duration:${dur}s;">${fishMarkup(f, size)}</g>`;
+    g.innerHTML = `<g class="fishBounceWrap"><g class="fishSway" style="animation-delay:${delay}s; animation-duration:${dur}s;">${fishMarkup(f, size)}</g></g>`;
+    g.addEventListener('click', () => onFishClick(f, i, g));
     layer.appendChild(g);
   });
   positionFish();
+}
+
+let fishClickStreakIndex = -1, fishClickStreakCount = 0, fishClickStreakTime = 0;
+function onFishClick(f, index, el){
+  lastInteractionTime = Date.now();
+  const wrap = el.querySelector('.fishBounceWrap');
+  if (wrap){
+    wrap.classList.remove('fishBounce');
+    void wrap.offsetWidth;
+    wrap.classList.add('fishBounce');
+  }
+
+  const now = Date.now();
+  if (index === fishClickStreakIndex && now - fishClickStreakTime < 1800){
+    fishClickStreakCount++;
+  } else {
+    fishClickStreakCount = 1;
+    fishClickStreakIndex = index;
+  }
+  fishClickStreakTime = now;
+  if (fishClickStreakCount >= 10) state.stats.everClickedFishTenTimes = true;
+
+  if (f.tier === 14){
+    state.stats.octopusClicks++;
+  }
 }
 
 function positionFish(){
@@ -1457,6 +1502,8 @@ function uiTick(){
   tickGoldenEvent();
   updateMaxSimultaneous();
   checkPatientGroups();
+  if (Date.now() - lastInteractionTime >= 120000) state.stats.everInactive2min = true;
+  if (Date.now() - sessionStartTime >= 7200000) state.stats.everPlayed2hSession = true;
   checkAchievements();
   checkMastery();
   render();
@@ -1606,8 +1653,11 @@ function renderRecords(){
   html += `<p style="color:var(--muted); font-size:.72rem; margin:16px 0 8px; text-transform:uppercase; letter-spacing:.06em;">Hauts faits (${state.achievementsUnlocked.length}/${ACHIEVEMENTS.length})</p>`;
   for (const a of ACHIEVEMENTS){
     const done = state.achievementsUnlocked.includes(a.id);
+    const hideName = a.secret && !done;
+    const label = hideName ? '???' : a.name;
+    const desc = hideName ? 'Un comportement étrange semble avoir été observé...' : a.desc;
     html += `<div class="recordRow" style="opacity:${done?1:.4};">
-      <span>${done?'🏆':'🔒'} ${a.name}<br><span style="font-size:.68rem; color:var(--muted);">${a.desc}</span></span>
+      <span>${done?'🏆':'🔒'} ${label}<br><span style="font-size:.68rem; color:var(--muted);">${desc}</span></span>
       <span class="rval">${done?'':`+${a.reward} 💎`}</span>
     </div>`;
   }
@@ -1696,6 +1746,8 @@ async function init(){
   buildTankStatic();
   spawnBubbles();
   render();
+
+  document.addEventListener('pointerdown', () => { lastInteractionTime = Date.now(); });
 
   document.querySelectorAll('.infoDot').forEach(dot => {
     dot.onclick = (e) => {
