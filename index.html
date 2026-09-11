@@ -263,7 +263,7 @@ function angleSpeedBase(){
   return BASE_SPEED * (1 + state.speedLevel*0.2) * boosted;
 }
 
-function costFish(){ return Math.ceil(10 * Math.pow(1.15, state.fishBoughtCount) * state.prestige.costMult); }
+function costFish(){ return Math.ceil(8 * Math.pow(1.12, state.fish.length) * state.prestige.costMult); }
 function costSpeed(){ return Math.ceil(28 * Math.pow(1.45, state.speedLevel) * state.prestige.costMult); }
 function costFeederBoost(){ return Math.ceil(45 * Math.pow(1.55, state.feederValueLevel) * state.prestige.costMult); }
 function costNewFeeder(){ return Math.ceil(180 * Math.pow(2.2, state.feeders.length-1) * state.prestige.costMult); }
