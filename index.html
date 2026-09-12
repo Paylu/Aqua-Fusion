@@ -123,7 +123,7 @@
 
   .fish{filter:drop-shadow(0 0 3px rgba(79,216,196,.45));}
   .fish.golden{
-    filter:drop-shadow(0 0 6px #ffd700) drop-shadow(0 0 12px #ffae00);
+    filter:drop-shadow(0 0 6px #ffd700) drop-shadow(0 0 12px #ffae00) sepia(1) saturate(4) hue-rotate(-10deg) brightness(1.15);
     animation:goldenPulse .7s ease-in-out infinite;
   }
   @keyframes goldenPulse{
@@ -378,27 +378,35 @@ const K = 5; // pacing global des revenus
 const BASE_SPEED = 30; // degrés/seconde de base — un tour complet dure ~12s
 const OFFLINE_CAP_SEC = 7200;
 
-const FISH_NAMES = ['Guppy','Tétra néon','Poisson rouge','Danio zébré','Poisson clown','Poisson-ange',
-  'Poisson-papillon','Poisson-chirurgien','Poisson-lion','Poisson-globe','Mérou','Barracuda',
-  'Requin-corail','Poulpe','Raie manta','Créature abyssale légendaire'];
+const FISH_NAMES = ['Guppy','Poisson rouge','Méduse bioluminescente','Hippocampe doré','Nautile ancestral','Poisson-lion',
+  'Poisson-lanterne abyssal','Requin','Poulpe écarlate','Orque','Raie manta bioluminescente','Anguille électrique abyssale',
+  'Gardien abyssal','Serpent abyssal','Léviathan','Créature légendaire'];
+
+const FISH_IMAGE_SLUGS = ['guppy','poisson-rouge','meduse','hippocampe','nautile','poisson-lion',
+  'poisson-lanterne','requin','poulpe','orque','raie-manta','anguille-electrique',
+  'gardien-abyssal','serpent-abyssal','leviathan','creature-legendaire'];
+function fishImageSrc(t){
+  const slug = FISH_IMAGE_SLUGS[t-1];
+  return slug ? `fish/${slug}.png` : null;
+}
 
 const FISH_INFO = [
   { size:'2-4 cm', fact:"Petit poisson coloré, souvent le tout premier qu'on installe dans un aquarium." },
-  { size:'3-5 cm', fact:'Bande fluorescente bleu et rouge, ne se déplace presque jamais seul.' },
   { size:'5-15 cm', fact:'Increvable et vorace, symbole des tout premiers bocaux de salon.' },
-  { size:'4-6 cm', fact:'Rayures horizontales et nage nerveuse, star des laboratoires de recherche.' },
-  { size:'7-11 cm', fact:"Vit collé à son anémone toute sa vie et ne la fuit jamais." },
-  { size:'15-25 cm', fact:'Nageoires en voile, il glisse dans l\'eau plus qu\'il ne nage.' },
-  { size:'12-20 cm', fact:'Museau fin taillé pour picorer entre les branches de corail.' },
-  { size:'20-38 cm', fact:'Porte une lame tranchante et rétractable près de la queue.' },
+  { size:'10-25 cm', fact:'Pulse doucement dans le noir, ses tentacules laissent une traînée de lumière.' },
+  { size:'10-18 cm', fact:"Le mâle porte les œufs dans une poche ventrale jusqu'à l'éclosion." },
+  { size:'15-25 cm', fact:'Survivant quasi inchangé depuis des centaines de millions d\'années.' },
   { size:'30-38 cm', fact:'Ses nageoires en éventail sont venimeuses au moindre contact.' },
-  { size:'15-30 cm (jusqu\'à 60 gonflé)', fact:"Avale de l'eau pour doubler de volume face à un prédateur." },
-  { size:'50 cm - 2 m', fact:'Peut avaler une proie presque aussi grosse que lui.' },
-  { size:'60 cm - 1,8 m', fact:'Mâchoire acérée et pointe de vitesse pour chasser en embuscade.' },
-  { size:'1 - 1,6 m', fact:'Timide malgré son nom, il préfère les fonds sableux le jour.' },
-  { size:'0,3 - 3 m (bras compris)', fact:'Trois cœurs, du sang bleu, et une intelligence redoutable.' },
-  { size:'3 - 7 m d\'envergure', fact:"Peut peser plus d'une tonne malgré son vol sous-marin très gracieux." },
-  { size:'inconnue', fact:"Personne ne l'a jamais vue entière. On sait juste qu'elle brille dans le noir." },
+  { size:'20-35 cm', fact:"Un appât lumineux naturel pend devant sa mâchoire pour attirer ses proies." },
+  { size:'1,5-4 m', fact:'Prédateur au sommet de la chaîne alimentaire, perçoit une goutte de sang à des kilomètres.' },
+  { size:'0,3-1,5 m (bras compris)', fact:'Trois cœurs, du sang bleu, et une intelligence redoutable.' },
+  { size:'6-9 m', fact:'Chasse en groupe organisé — certains la surnomment la baleine tueuse.' },
+  { size:'3-7 m d\'envergure', fact:"Peut peser plus d'une tonne malgré son vol sous-marin très gracieux." },
+  { size:'1-2,5 m', fact:'Capable de générer une décharge assez forte pour assommer une proie.' },
+  { size:'2-4 m', fact:'Sa couronne osseuse impressionne, mais personne n\'a jamais vu ce qu\'elle garde vraiment.' },
+  { size:'4-8 m', fact:'Se déplace en ondulant dans le noir total, invisible jusqu\'au dernier instant.' },
+  { size:'10-20 m', fact:'Les rares témoins qui l\'ont aperçu ne s\'accordent jamais sur sa taille réelle.' },
+  { size:'inconnue', fact:'Personne n\'a jamais survécu assez longtemps pour la mesurer.' },
 ];
 function fishInfo(t){ return FISH_INFO[t-1] || { size:'hors normes', fact:'Une espèce si rare que même les carnets scientifiques restent muets à son sujet.' }; }
 
@@ -548,7 +556,7 @@ const ACHIEVEMENTS = [
   { id:'offline_8h', name:'Bonne nuit les poissons', desc:'Gagne des perles après 8h d\'absence', reward:4, check:(s)=>s.stats.everOffline8h },
   { id:'offline_million', name:'Ils ont travaillé pendant que je dormais', desc:'Récupère 1 million de perles en une fois hors-ligne', reward:8, check:(s)=>s.stats.everOfflineMillion },
   { id:'offline_3days', name:'Absence prolongée', desc:'Reviens après 3 jours d\'absence', reward:6, check:(s)=>s.stats.everOffline3days },
-  { id:'pas_le_requin', name:'Pas le requin !', desc:'Fusionne un Requin-corail', reward:4, check:(s)=>(s.stats.fusionsByTier[13]||0)>=1 },
+  { id:'pas_le_requin', name:'Pas le requin !', desc:'Fusionne un Requin', reward:4, check:(s)=>(s.stats.fusionsByTier[8]||0)>=1 },
   { id:'encore', name:'Encore.', desc:'Fusionne 10 fois depuis le même palier', reward:4, check:(s)=>Math.max(0,...Object.values(s.stats.fusionsByTier||{}))>=10 },
   { id:'ca_tourne_en_rond', name:'Ça tourne en rond', desc:'Fais effectuer 100 tours de bassin à tes poissons, cumulés', reward:3, check:(s)=>s.stats.totalLoopsCompleted>=100 },
   { id:'deux_heures', name:'J\'aurais dû dormir', desc:'Joue 2 heures d\'affilée', reward:5, check:(s)=>s.stats.everPlayed2hSession },
@@ -721,27 +729,15 @@ function fishName(t){
   return `Espèce légendaire n°${t-FISH_NAMES.length}`;
 }
 function tierValue(t){ return Math.pow(3, t-1); }
-function fishHue(t){ return (170 + t*20) % 360; }
-function fishColor(t){
-  if (t===13) return '#7c8ba0';
-  if (t===14) return '#b05fd6';
-  if (t===15) return '#5b93e0';
-  if (t>=16) return '#2c2350';
-  return `hsl(${fishHue(t)} 70% 58%)`;
-}
-function fishColorLight(t){
-  if (t===13) return '#aeb9c8';
-  if (t===14) return '#dba8ef';
-  if (t===15) return '#a9cdf5';
-  if (t>=16) return '#5d4894';
-  return `hsl(${fishHue(t)} 78% 78%)`;
-}
+function fishHue(t){ return (170 + t*13) % 360; }
+function fishColor(t){ return `hsl(${fishHue(t)} 70% 58%)`; }
+function fishColorLight(t){ return `hsl(${fishHue(t)} 78% 78%)`; }
 
 function typeSpeedMult(type){ return type==='fast' ? 1.55 : type==='slow' ? 0.6 : 1; }
 function typeValueMult(type){ return type==='fast' ? 0.6 : type==='slow' ? 1.65 : 1; }
 function typeLabel(type){ return type==='fast' ? '⚡ rapide' : type==='slow' ? '🐢 lent' : ''; }
 
-function fusionTarget(){ return 3 + state.bassinIndex; }
+function fusionTarget(){ return Math.min(16, 3 + state.bassinIndex); }
 
 function angleSpeedBase(){
   const boosted = Date.now() < oxygenActiveUntil ? 2 : 1;
@@ -966,103 +962,13 @@ function buildTankStatic(){
 }
 
 function fishMarkup(f, size){
-  const t = f.tier;
-  const c = f.golden ? '#ffd700' : fishColor(t);
-  const cl = f.golden ? '#fff3b0' : fishColorLight(t);
-  if (t === 14) return octopusMarkup(size, c, cl);
-  if (t === 15) return rayMarkup(size, c, cl);
-  if (t === 13) return sharkMarkup(size, c, cl);
-  if (t >= 16) return abyssalMarkup(size, c, cl);
-  return standardFishMarkup(t, size, c, cl);
-}
-
-function standardFishMarkup(t, size, c, cl){
-  let extra = '';
-  let finScale = 1;
-  if (t >= 5 && t <= 8){
-    // bande "clown/papillon" : rayure claire sur le corps
-    extra += `<rect x="${-size*0.25}" y="${-size*0.9}" width="${size*0.32}" height="${size*1.8}" fill="#ffffff" opacity="0.5" rx="${size*0.14}"/>`;
+  const src = fishImageSrc(f.tier);
+  const imgSize = size * 3.4;
+  if (!src){
+    // filet de sécurité si jamais un palier sans image existait
+    return `<circle r="${size}" fill="#4fd8c4"/>`;
   }
-  if (t >= 9 && t <= 12){
-    // bande "fantaisie" : nageoires plus amples
-    finScale = 1.55;
-    extra += `<polygon points="${-size*0.2},${size*0.75} ${size*0.05},${size*1.25} ${size*0.3},${size*0.7}" fill="${c}" opacity="0.85"/>`;
-  }
-  return `
-    <ellipse cx="${-size*0.15}" cy="${size*0.32}" rx="${size*1.05}" ry="${size*0.4}" fill="${cl}" opacity="0.5"/>
-    <path d="M ${-size*1.6},0 C ${-size*1.6},${-size*0.95} ${size*0.55},${-size*0.95} ${size*1.15},0 C ${size*0.55},${size*0.95} ${-size*1.6},${size*0.95} ${-size*1.6},0 Z" fill="${c}"/>
-    ${extra}
-    <polygon points="${-size*0.3},${-size*0.85*finScale} ${size*0.15},${-size*1.35*finScale} ${size*0.35},${-size*0.75*finScale}" fill="${c}" opacity="0.9"/>
-    <g transform="translate(${-size*1.55},0)">
-      <polygon points="0,0 ${-size*0.9},${-size*0.65} ${-size*0.9},${size*0.65}" fill="${c}">
-        <animateTransform attributeName="transform" type="rotate" values="-16 0 0;16 0 0;-16 0 0" dur="0.55s" repeatCount="indefinite"/>
-      </polygon>
-    </g>
-    <ellipse cx="${size*0.1}" cy="${-size*0.35}" rx="${size*0.5}" ry="${size*0.22}" fill="#ffffff" opacity="0.3"/>
-    <ellipse cx="${-size*0.5}" cy="${-size*0.15}" rx="${size*0.18}" ry="${size*0.09}" fill="#ffffff" opacity="0.18"/>
-    <circle cx="${size*0.65}" cy="${-size*0.12}" r="${Math.max(1,size*0.13)}" fill="#04211c"/>
-  `;
-}
-
-function sharkMarkup(size, c, cl){
-  return `
-    <ellipse cx="${-size*0.1}" cy="${size*0.3}" rx="${size*1.1}" ry="${size*0.38}" fill="${cl}" opacity="0.5"/>
-    <path d="M ${-size*1.7},0 C ${-size*1.7},${-size*0.8} ${size*0.9},${-size*0.55} ${size*1.5},0 C ${size*0.9},${size*0.7} ${-size*1.7},${size*0.8} ${-size*1.7},0 Z" fill="${c}"/>
-    <polygon points="${-size*0.15},${-size*0.8} ${size*0.05},${-size*1.7} ${size*0.4},${-size*0.7}" fill="${c}"/>
-    <path d="M ${-size*1.65},0 Q ${-size*2.15},${-size*0.55} ${-size*2.05},0 Q ${-size*2.15},${size*0.55} ${-size*1.65},0 Z" fill="${c}"/>
-    <circle cx="${size*0.85}" cy="${-size*0.1}" r="${Math.max(1,size*0.1)}" fill="#04211c"/>
-  `;
-}
-
-function octopusMarkup(size, c, cl){
-  let tentacles = '';
-  for (let i=0;i<5;i++){
-    const a = -55 + i*27;
-    const rad = a*Math.PI/180;
-    const tx = Math.cos(rad)*size*1.5, ty = size*0.9 + Math.sin(rad)*size*0.5;
-    tentacles += `<path d="M0,${size*0.6} Q ${tx*0.5},${size*1.3} ${tx},${ty}" stroke="${c}" stroke-width="${size*0.32}" fill="none" stroke-linecap="round">
-      <animate attributeName="d" dur="${1+i*0.1}s" repeatCount="indefinite"
-        values="M0,${size*0.6} Q ${tx*0.5},${size*1.3} ${tx},${ty};M0,${size*0.6} Q ${tx*0.6},${size*1.1} ${tx*0.9},${ty*0.8};M0,${size*0.6} Q ${tx*0.5},${size*1.3} ${tx},${ty}"/>
-    </path>`;
-  }
-  return `
-    ${tentacles}
-    <ellipse cx="0" cy="${-size*0.1}" rx="${size*1.15}" ry="${size*0.95}" fill="${c}"/>
-    <ellipse cx="${-size*0.25}" cy="${-size*0.35}" rx="${size*0.5}" ry="${size*0.35}" fill="${cl}" opacity="0.5"/>
-    <circle cx="${size*0.35}" cy="${-size*0.3}" r="${size*0.16}" fill="#04211c"/>
-    <circle cx="${-size*0.25}" cy="${-size*0.3}" r="${size*0.16}" fill="#04211c"/>
-  `;
-}
-
-function rayMarkup(size, c, cl){
-  return `
-    <polygon points="0,${-size*0.3} ${size*1.5},${size*0.5} 0,${size*1.15} ${-size*1.5},${size*0.5}" fill="${c}">
-      <animateTransform attributeName="transform" type="scale" values="1,0.85;1,1.05;1,0.85" dur="1.4s" repeatCount="indefinite" additive="sum"/>
-    </polygon>
-    <ellipse cx="0" cy="${size*0.1}" rx="${size*0.4}" ry="${size*0.3}" fill="${cl}" opacity="0.6"/>
-    <path d="M0,${size*1.1} Q ${size*0.3},${size*1.6} 0,${size*2}" stroke="${c}" stroke-width="${size*0.14}" fill="none" stroke-linecap="round"/>
-    <circle cx="${-size*0.2}" cy="${-size*0.05}" r="${Math.max(1,size*0.09)}" fill="#04211c"/>
-    <circle cx="${size*0.2}" cy="${-size*0.05}" r="${Math.max(1,size*0.09)}" fill="#04211c"/>
-  `;
-}
-
-function abyssalMarkup(size, c, cl){
-  const dots = [[-size*0.9,0],[-size*0.3,size*0.5],[size*0.4,-size*0.4],[size*0.9,size*0.2]]
-    .map(([x,y],i) => `<circle cx="${x}" cy="${y}" r="${size*0.09}" fill="${cl}">
-      <animate attributeName="opacity" values="0.2;1;0.2" dur="${1.2+i*0.3}s" repeatCount="indefinite"/>
-    </circle>`).join('');
-  return `
-    <path d="M ${-size*1.7},0 C ${-size*1.7},${-size*1.05} ${size*0.6},${-size*1.05} ${size*1.25},0 C ${size*0.6},${size*1.05} ${-size*1.7},${size*1.05} ${-size*1.7},0 Z" fill="${c}"/>
-    <g transform="translate(${-size*1.65},0)">
-      <polygon points="0,0 ${-size*1.0},${-size*0.7} ${-size*1.0},${size*0.7}" fill="${c}">
-        <animateTransform attributeName="transform" type="rotate" values="-12 0 0;12 0 0;-12 0 0" dur="0.8s" repeatCount="indefinite"/>
-      </polygon>
-    </g>
-    ${dots}
-    <circle cx="${size*0.7}" cy="${-size*0.1}" r="${Math.max(1,size*0.14)}" fill="#ffe27a">
-      <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite"/>
-    </circle>
-  `;
+  return `<image href="${src}" x="${-imgSize/2}" y="${-imgSize/2}" width="${imgSize}" height="${imgSize}" preserveAspectRatio="xMidYMid meet"/>`;
 }
 
 function buildFishLayer(){
@@ -1103,7 +1009,7 @@ function onFishClick(f, index, el){
   fishClickStreakTime = now;
   if (fishClickStreakCount >= 10) state.stats.everClickedFishTenTimes = true;
 
-  if (f.tier === 14){
+  if (f.tier === 9){ // Poulpe écarlate
     state.stats.octopusClicks++;
   }
 }
