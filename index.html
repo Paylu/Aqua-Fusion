@@ -39,6 +39,14 @@
     filter:blur(16px) brightness(.55);
     transform:scale(1.4);
   }
+  .bgImage{
+    position:absolute; inset:-7%; z-index:0; background-size:cover; background-position:center;
+    animation:bgBreathe 22s ease-in-out infinite alternate;
+  }
+  @keyframes bgBreathe{
+    0%{ transform:scale(1) translate(0,0); }
+    100%{ transform:scale(1.08) translate(-1%,-1%); }
+  }
   .aquarium-bg::before{
     content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
     background:radial-gradient(ellipse 80% 40% at 50% 0%, rgba(180,230,255,.16) 0%, transparent 60%);
@@ -306,6 +314,7 @@
 </head>
 <body>
 <div class="aquarium-bg">
+  <div class="bgImage" id="bgImage"></div>
   <div class="waterline"></div>
   <div class="rays"></div>
   <div class="bubbles" id="bubbles"></div>
@@ -932,24 +941,10 @@ function estIncomePerSec(){
 // ---- rendering ----
 function buildTankStatic(){
   const biome = biomeFor(state.bassinIndex);
-  const wrap = document.querySelector('.aquarium-bg');
-  if (wrap) wrap.style.background = `url('${biome.img}') center/cover no-repeat, linear-gradient(180deg, ${biome.bg} 0%, #04070c 100%)`;
+  const wrap = document.getElementById('bgImage');
+  if (wrap) wrap.style.background = `url('${biome.img}') center/cover no-repeat`;
   const svg = document.getElementById('tank');
-  let html = `<g opacity="0.55">
-    <path d="M20,290 Q14,258 25,233 Q9,212 22,186" stroke="#2fae6b" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <path d="M36,296 Q30,268 41,243 Q27,222 39,198" stroke="#3ddc97" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <path d="M276,293 Q282,264 269,239 Q284,216 270,192" stroke="#2fae6b" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <circle cx="257" cy="34" r="10" fill="#ff8c6b" opacity="0.75"/>
-    <circle cx="270" cy="27" r="6" fill="#ff6b81" opacity="0.75"/>
-    <circle cx="30" cy="31" r="8" fill="#ffb26b" opacity="0.75"/>
-  </g>`;
-  if (biome.sides === 0){
-    html += `<circle cx="${CX}" cy="${CY}" r="${R_OUT}" fill="none" stroke="${biome.accent}" stroke-width="2" opacity="0.6"/>`;
-    html += `<circle cx="${CX}" cy="${CY}" r="${R_IN}" fill="none" stroke="${biome.accent}" stroke-width="2" opacity="0.6"/>`;
-  } else {
-    html += `<polygon points="${pointsAttr(biome.sides,R_OUT,0)}" fill="none" stroke="${biome.accent}" stroke-width="2" opacity="0.6"/>`;
-    html += `<polygon points="${pointsAttr(biome.sides,R_IN,0)}" fill="none" stroke="${biome.accent}" stroke-width="2" opacity="0.6"/>`;
-  }
+  let html = '';
   state.feeders.forEach((fdr) => {
     const pIn = positionAtT(fdr.t, biome.sides, R_IN, 0);
     const pOut = positionAtT(fdr.t, biome.sides, R_OUT, 0);
