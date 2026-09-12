@@ -138,8 +138,8 @@
     100%{ transform:scale(1); }
   }
   @keyframes fishSway{
-    0%,100%{ transform:rotate(-4deg); }
-    50%{ transform:rotate(4deg); }
+    0%,100%{ transform:rotate(-4deg) scale(1); }
+    50%{ transform:rotate(4deg) scale(1.04); }
   }
   .feeder-line{stroke-dasharray:3 3;}
   .feederGlow{animation:feederPulse 2.6s ease-in-out infinite; transform-box:fill-box; transform-origin:50% 50%;}
@@ -1014,13 +1014,38 @@ function onFishClick(f, index, el){
   }
 }
 
+function angleDiffSigned(a, b){
+  // plus petite différence signée entre deux angles en degrés
+  let d = (a - b) % 360;
+  if (d > 180) d -= 360;
+  if (d < -180) d += 360;
+  return d;
+}
+
 function positionFish(){
   const biome = biomeFor(state.bassinIndex);
+  const now = Date.now();
   state.fish.forEach((f,i) => {
     const el = document.getElementById('fish'+i);
     if (!el) return;
     const p = positionAtT(f.t, biome.sides, R_MID, 0);
-    el.setAttribute('transform', `translate(${p.x},${p.y}) rotate(${p.heading})`);
+
+    // inclinaison dans les virages : un petit "kick" à chaque changement de cap qui s'amortit tout seul
+    f.bankOffset = (f.bankOffset || 0) * 0.88;
+    if (f.lastHeading !== undefined){
+      const delta = angleDiffSigned(p.heading, f.lastHeading);
+      if (Math.abs(delta) > 1.5){
+        const kick = Math.max(-20, Math.min(20, delta * 1.6));
+        f.bankOffset += kick;
+      }
+    }
+    f.lastHeading = p.heading;
+
+    // léger tangage vertical façon nage, désynchronisé par poisson
+    const bobPhase = f.bobPhase !== undefined ? f.bobPhase : (f.bobPhase = Math.random()*Math.PI*2);
+    const bob = Math.sin(now/900 + bobPhase) * 2.2;
+
+    el.setAttribute('transform', `translate(${p.x},${p.y+bob}) rotate(${p.heading + f.bankOffset})`);
     el.classList.toggle('golden', !!f.golden);
   });
 }
