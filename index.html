@@ -31,7 +31,14 @@
     overflow:hidden;
   }
   .aquarium-bg{position:fixed; inset:0; z-index:0; overflow:hidden;
-    background:linear-gradient(180deg, #0a3348 0%, #062231 55%, #041722 100%);}
+    background:linear-gradient(180deg, #0a3348 0%, #062231 55%, #041722 100%);
+    transition:filter .65s ease, transform .65s ease;
+    transform-origin:50% 50%;
+  }
+  .aquarium-bg.bassinZoom{
+    filter:blur(16px) brightness(.55);
+    transform:scale(1.4);
+  }
   .aquarium-bg::before{
     content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
     background:radial-gradient(ellipse 80% 40% at 50% 0%, rgba(180,230,255,.16) 0%, transparent 60%);
@@ -466,14 +473,14 @@ function checkMastery(){
 }
 
 const BIOMES = [
-  {name:'Bassin tropical', sides:0, accent:'#4fd8c4', bg:'#0a3348'},
-  {name:'Récif corallien', sides:3, accent:'#ff6b81', bg:'#3a1030'},
-  {name:'Mangrove', sides:4, accent:'#7ec850', bg:'#16321a'},
-  {name:'Forêt de kelp', sides:5, accent:'#3ddc97', bg:'#0f2e2a'},
-  {name:'Pleine mer', sides:6, accent:'#2f7fe0', bg:'#081733'},
-  {name:'Sources hydrothermales', sides:7, accent:'#ff8c42', bg:'#3a1808'},
-  {name:'Polaire', sides:8, accent:'#bfe9f5', bg:'#0a2438'},
-  {name:'Fosse abyssale', sides:9, accent:'#a06bff', bg:'#05060d'},
+  {name:'Bassin tropical', sides:0, accent:'#4fd8c4', bg:'#0a3348', img:'bassins/tropical.jpg'},
+  {name:'Récif corallien', sides:3, accent:'#ff6b81', bg:'#3a1030', img:'bassins/recif.jpg'},
+  {name:'Mangrove', sides:4, accent:'#7ec850', bg:'#16321a', img:'bassins/mangrove.jpg'},
+  {name:'Forêt de kelp', sides:5, accent:'#3ddc97', bg:'#0f2e2a', img:'bassins/kelp.jpg'},
+  {name:'Pleine mer', sides:6, accent:'#2f7fe0', bg:'#081733', img:'bassins/pleine-mer.jpg'},
+  {name:'Sources hydrothermales', sides:7, accent:'#ff8c42', bg:'#3a1808', img:'bassins/hydrothermal.jpg'},
+  {name:'Polaire', sides:8, accent:'#bfe9f5', bg:'#0a2438', img:'bassins/polaire.jpg'},
+  {name:'Fosse abyssale', sides:9, accent:'#a06bff', bg:'#05060d', img:'bassins/abysse.jpg'},
 ];
 
 let state = null;
@@ -926,7 +933,7 @@ function estIncomePerSec(){
 function buildTankStatic(){
   const biome = biomeFor(state.bassinIndex);
   const wrap = document.querySelector('.aquarium-bg');
-  if (wrap) wrap.style.background = `linear-gradient(180deg, ${biome.bg} 0%, #04070c 100%)`;
+  if (wrap) wrap.style.background = `url('${biome.img}') center/cover no-repeat, linear-gradient(180deg, ${biome.bg} 0%, #04070c 100%)`;
   const svg = document.getElementById('tank');
   let html = `<g opacity="0.55">
     <path d="M20,290 Q14,258 25,233 Q9,212 22,186" stroke="#2fae6b" stroke-width="4" fill="none" stroke-linecap="round"/>
@@ -1365,24 +1372,33 @@ function completeBassin(){
 }
 
 function startNewBassin(){
-  state.bassinIndex++;
-  state.coins = 0;
-  state.fish = generateStartingFish();
-  state.fishBoughtCount = state.fish.length;
-  state.speedLevel = 0;
-  state.feederValueLevel = 0;
-  state.incomeMultLevel = 0;
-  state.capacityLevel = 0;
-  state.feeders = generateStartingFeeders();
-  state.bassinStartTime = Date.now();
-  state.questsCompletedInBassin = 0;
-  startNewQuest();
-  checkUnlocks();
+  const bg = document.querySelector('.aquarium-bg');
   document.getElementById('overlay').classList.remove('show');
-  dirty = true;
-  buildTankStatic();
-  render();
-  saveState();
+  if (bg) bg.classList.add('bassinZoom');
+
+  setTimeout(() => {
+    state.bassinIndex++;
+    state.coins = 0;
+    state.fish = generateStartingFish();
+    state.fishBoughtCount = state.fish.length;
+    state.speedLevel = 0;
+    state.feederValueLevel = 0;
+    state.incomeMultLevel = 0;
+    state.capacityLevel = 0;
+    state.feeders = generateStartingFeeders();
+    state.bassinStartTime = Date.now();
+    state.questsCompletedInBassin = 0;
+    startNewQuest();
+    checkUnlocks();
+    dirty = true;
+    buildTankStatic();
+    render();
+    saveState();
+
+    requestAnimationFrame(() => {
+      if (bg) bg.classList.remove('bassinZoom');
+    });
+  }, 650);
 }
 
 // ---- loop / persistence ----
