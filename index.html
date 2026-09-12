@@ -474,13 +474,13 @@ function checkMastery(){
 
 const BIOMES = [
   {name:'Bassin tropical', sides:0, accent:'#4fd8c4', bg:'#0a3348', img:'bassins/tropical.jpg'},
-  {name:'Récif corallien', sides:3, accent:'#ff6b81', bg:'#3a1030', img:'bassins/recif.jpg'},
-  {name:'Mangrove', sides:4, accent:'#7ec850', bg:'#16321a', img:'bassins/mangrove.jpg'},
-  {name:'Forêt de kelp', sides:5, accent:'#3ddc97', bg:'#0f2e2a', img:'bassins/kelp.jpg'},
-  {name:'Pleine mer', sides:6, accent:'#2f7fe0', bg:'#081733', img:'bassins/pleine-mer.jpg'},
-  {name:'Sources hydrothermales', sides:7, accent:'#ff8c42', bg:'#3a1808', img:'bassins/hydrothermal.jpg'},
-  {name:'Polaire', sides:8, accent:'#bfe9f5', bg:'#0a2438', img:'bassins/polaire.jpg'},
-  {name:'Fosse abyssale', sides:9, accent:'#a06bff', bg:'#05060d', img:'bassins/abysse.jpg'},
+  {name:'Récif corallien', sides:0, accent:'#ff6b81', bg:'#3a1030', img:'bassins/recif.jpg'},
+  {name:'Mangrove', sides:0, accent:'#7ec850', bg:'#16321a', img:'bassins/mangrove.jpg'},
+  {name:'Forêt de kelp', sides:0, accent:'#3ddc97', bg:'#0f2e2a', img:'bassins/kelp.jpg'},
+  {name:'Fosse abyssale', sides:0, accent:'#a06bff', bg:'#05060d', img:'bassins/abysse.jpg'},
+  {name:'Sources hydrothermales', sides:0, accent:'#ff8c42', bg:'#3a1808', img:'bassins/hydrothermal.jpg'},
+  {name:'Polaire', sides:0, accent:'#bfe9f5', bg:'#0a2438', img:'bassins/polaire.jpg'},
+  {name:'Pleine mer', sides:0, accent:'#2f7fe0', bg:'#081733', img:'bassins/pleine-mer.jpg'},
 ];
 
 let state = null;
@@ -728,7 +728,7 @@ function biomeFor(bassinIndex){
   if (idx < BIOMES.length) return Object.assign({}, BIOMES[idx]);
   const extra = idx - (BIOMES.length-1);
   const base = BIOMES[BIOMES.length-1];
-  return { name: `Abysses mythiques ${extra}`, sides: 9+extra, accent: base.accent, bg: base.bg };
+  return { name: `Abysses mythiques ${extra}`, sides: 0, accent: base.accent, bg: base.bg, img: base.img };
 }
 
 function fishName(t){
@@ -767,7 +767,7 @@ function costFuse(t){
   return Math.ceil(20 * Math.pow(2.3, t-1) * fuseDiscount);
 }
 function maxFish(){ return Math.min(40, 10 + state.bassinIndex*2 + state.capacityLevel*2); }
-function maxFeeders(){ const b = biomeFor(state.bassinIndex); return b.sides===0 ? 8 : Math.min(12, b.sides*2); }
+function maxFeeders(){ return Math.min(12, 5 + state.bassinIndex); }
 
 function feederValue(){ return (1 + state.feederValueLevel*0.3) * state.prestige.revenueMult; }
 function incomeMult(){ return 1 + state.incomeMultLevel*0.12; }
