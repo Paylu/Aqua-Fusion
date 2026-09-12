@@ -381,8 +381,8 @@
 
 <script>
 const CX=150, CY=150, R_OUT=112, R_IN=70, R_MID=(112+70)/2;
-const K = 5; // pacing global des revenus
-const BASE_SPEED = 30; // degrés/seconde de base — un tour complet dure ~12s
+const K = 3.3; // pacing global des revenus
+const BASE_SPEED = 45; // degrés/seconde de base — mouvement plus visible sur le nouveau fond plein écran
 const OFFLINE_CAP_SEC = 7200;
 
 const FISH_NAMES = ['Guppy','Poisson rouge','Méduse bioluminescente','Hippocampe doré','Nautile ancestral','Poisson-lion',
@@ -970,7 +970,7 @@ function buildTankStatic(){
 
 function fishMarkup(f, size){
   const src = fishImageSrc(f.tier);
-  const imgSize = size * 3.4;
+  const imgSize = size * 5.6;
   if (!src){
     // filet de sécurité si jamais un palier sans image existait
     return `<circle r="${size}" fill="#4fd8c4"/>`;
@@ -986,7 +986,7 @@ function buildFishLayer(){
     g.setAttribute('id','fish'+i);
     g.setAttribute('class','fish');
     g.style.cursor = 'pointer';
-    const size = 6 + Math.min(7, f.tier*0.5);
+    const size = 9 + Math.min(9, f.tier*0.6);
     const delay = (i % 7) * -0.31;
     const dur = 2.1 + (i % 5)*0.18;
     g.innerHTML = `<g class="fishBounceWrap"><g class="fishSway" style="animation-delay:${delay}s; animation-duration:${dur}s;">${fishMarkup(f, size)}</g></g>`;
@@ -1407,8 +1407,12 @@ function loop(ts){
   let dt = (ts-lastFrame)/1000;
   dt = Math.min(dt, 0.25);
   lastFrame = ts;
-  simulate(dt);
-  positionFish();
+  try{
+    simulate(dt);
+    positionFish();
+  }catch(err){
+    console.error('Erreur dans la boucle d\'animation :', err);
+  }
   requestAnimationFrame(loop);
 }
 
