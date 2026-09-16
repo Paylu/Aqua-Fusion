@@ -867,7 +867,8 @@ function simulate(dt){
   const crossingsThisTick = {};
   for (const f of state.fish){
     const prev = f.t;
-    const spd = spdBase * typeSpeedMult(f.type);
+    const speedVar = f.speedVar !== undefined ? f.speedVar : (f.speedVar = 0.85 + Math.random()*0.3);
+    const spd = spdBase * typeSpeedMult(f.type) * speedVar;
     let next = (prev + spd*dt) % 1;
     for (let fi=0; fi<state.feeders.length; fi++){
       if (crossedT(prev, next, state.feeders[fi].t)){
@@ -1096,7 +1097,12 @@ function positionFish(){
   state.fish.forEach((f,i) => {
     const el = document.getElementById('fish'+i);
     if (!el) return;
-    const p = positionAtT(f.t, biome.sides, R_MID, 0);
+
+    // rayon légèrement variable par poisson : casse l'effet "cercle parfait mécanique"
+    const radiusPhase = f.radiusPhase !== undefined ? f.radiusPhase : (f.radiusPhase = Math.random()*Math.PI*2);
+    const radiusSpeed = f.radiusSpeed !== undefined ? f.radiusSpeed : (f.radiusSpeed = 1800 + Math.random()*1400);
+    const jitter = Math.sin(now/radiusSpeed + radiusPhase) * (R_OUT-R_IN) * 0.16;
+    const p = positionAtT(f.t, biome.sides, R_MID + jitter, 0);
 
     // inclinaison dans les virages : un petit "kick" à chaque changement de cap qui s'amortit tout seul
     f.bankOffset = (f.bankOffset || 0) * 0.88;
@@ -1113,7 +1119,15 @@ function positionFish(){
     const bobPhase = f.bobPhase !== undefined ? f.bobPhase : (f.bobPhase = Math.random()*Math.PI*2);
     const bob = Math.sin(now/900 + bobPhase) * 2.2;
 
-    el.setAttribute('transform', `translate(${p.x},${p.y+bob}) rotate(${p.heading + f.bankOffset})`);
+    // le sprite est dessiné nez-à-droite : au lieu de le faire tourner tête en bas sur la moitié du cercle,
+    // on le retourne horizontalement (comme un vrai poisson qui fait demi-tour) et on limite l'inclinaison
+    const effHeading = p.heading + f.bankOffset;
+    const flip = Math.cos(effHeading*Math.PI/180) < 0;
+    const transform = flip
+      ? `translate(${p.x},${p.y+bob}) scale(-1,1) rotate(${180-effHeading})`
+      : `translate(${p.x},${p.y+bob}) rotate(${effHeading})`;
+
+    el.setAttribute('transform', transform);
     el.classList.toggle('golden', !!f.golden);
   });
 }
