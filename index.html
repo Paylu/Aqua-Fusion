@@ -1011,7 +1011,22 @@ function buildTankStatic(){
   const wrap = document.getElementById('bgImage');
   if (wrap) wrap.style.background = `url('${biome.img}') center/cover no-repeat`;
   const svg = document.getElementById('tank');
-  let html = '';
+  let html = `<defs>
+    <filter id="softBlur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+  </defs>
+  <g filter="url(#softBlur)" opacity="0.5" style="mix-blend-mode:screen;">`;
+  for (let i=0;i<5;i++){
+    const cx = 60 + Math.random()*180, cy = 60 + Math.random()*180;
+    const dx = (Math.random()*30-15), dy = (Math.random()*30-15);
+    const dur = (10+Math.random()*8).toFixed(1);
+    html += `<circle cx="${cx}" cy="${cy}" r="${14+Math.random()*10}" fill="#eaffef">
+      <animateTransform attributeName="transform" type="translate" values="0,0;${dx},${dy};0,0" dur="${dur}s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.15;0.55;0.15" dur="${(dur*0.7).toFixed(1)}s" repeatCount="indefinite"/>
+    </circle>`;
+  }
+  html += `</g>`;
   state.feeders.forEach((fdr) => {
     const pIn = positionAtT(fdr.t, biome.sides, R_IN, 0);
     const pOut = positionAtT(fdr.t, biome.sides, R_OUT, 0);
@@ -1030,14 +1045,36 @@ function buildTankStatic(){
   buildFishLayer();
 }
 
-function fishMarkup(f, size){
+function fishMarkup(f, size, i){
   const src = fishImageSrc(f.tier);
   const imgSize = size * 5.6;
   if (!src){
     // filet de sécurité si jamais un palier sans image existait
     return `<circle r="${size}" fill="#4fd8c4"/>`;
   }
-  return `<image href="${src}" x="${-imgSize/2}" y="${-imgSize/2}" width="${imgSize}" height="${imgSize}" preserveAspectRatio="xMidYMid meet"/>`;
+  const half = imgSize/2;
+  const splitX = -imgSize*0.08; // frontière approximative corps / queue
+  const tailDur = (2 + (i%5)*0.15).toFixed(2);
+  const tailDelay = (i%7)*0.18;
+  return `
+    <defs>
+      <clipPath id="clipFront${i}"><rect x="${splitX}" y="${-half}" width="${half-splitX}" height="${imgSize}"/></clipPath>
+      <clipPath id="clipTail${i}"><rect x="${-half}" y="${-half}" width="${splitX+half}" height="${imgSize}"/></clipPath>
+    </defs>
+    <g clip-path="url(#clipFront${i})">
+      <image href="${src}" x="${-half}" y="${-half}" width="${imgSize}" height="${imgSize}" preserveAspectRatio="xMidYMid meet"/>
+    </g>
+    <g clip-path="url(#clipTail${i})">
+      <g transform="translate(${splitX},0)">
+        <g>
+          <animateTransform attributeName="transform" type="rotate" values="-13 0 0;13 0 0;-13 0 0" dur="${tailDur}s" begin="${tailDelay}s" repeatCount="indefinite"/>
+          <g transform="translate(${-splitX},0)">
+            <image href="${src}" x="${-half}" y="${-half}" width="${imgSize}" height="${imgSize}" preserveAspectRatio="xMidYMid meet"/>
+          </g>
+        </g>
+      </g>
+    </g>
+  `;
 }
 
 function buildFishLayer(){
@@ -1051,7 +1088,7 @@ function buildFishLayer(){
     const size = 9 + Math.min(9, f.tier*0.6);
     const delay = (i % 7) * -0.31;
     const dur = 2.1 + (i % 5)*0.18;
-    g.innerHTML = `<g class="fishBounceWrap"><g class="fishSway" style="animation-delay:${delay}s; animation-duration:${dur}s;">${fishMarkup(f, size)}</g></g>`;
+    g.innerHTML = `<g class="fishBounceWrap"><g class="fishSway" style="animation-delay:${delay}s; animation-duration:${dur}s;">${fishMarkup(f, size, i)}</g></g>`;
     g.addEventListener('click', () => onFishClick(f, i, g));
     layer.appendChild(g);
   });
