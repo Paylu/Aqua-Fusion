@@ -409,8 +409,8 @@
 
 <script>
 const CX=150, CY=150, R_OUT=112, R_IN=70, R_MID=(112+70)/2;
-const K = 3.3; // pacing global des revenus
-const BASE_SPEED = 45; // degrés/seconde de base — mouvement plus visible sur le nouveau fond plein écran
+const K = 2.9; // pacing global des revenus
+const BASE_SPEED = 52; // degrés/seconde de base — effet "courant" plus marqué
 const OFFLINE_CAP_SEC = 7200;
 
 const FISH_NAMES = ['Guppy','Poisson rouge','Méduse bioluminescente','Hippocampe doré','Nautile ancestral','Poisson-lion',
@@ -1027,6 +1027,27 @@ function buildTankStatic(){
     </circle>`;
   }
   html += `</g>`;
+
+  // vortex central : spirales qui tournent en continu, façon maelström
+  html += `<g transform="translate(${CX},${CY})" opacity="0.55">
+    <g>
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="7s" repeatCount="indefinite"/>
+      <path d="M0,0 Q10,-14 22,-4 Q30,4 20,16 Q8,24 -6,14 Q-18,2 -8,-12 Q4,-26 22,-18"
+        stroke="${biome.accent}" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.8"/>
+    </g>
+    <g>
+      <animateTransform attributeName="transform" type="rotate" from="360" to="0" dur="10s" repeatCount="indefinite"/>
+      <path d="M0,0 Q-14,10 -6,24 Q0,34 14,26 Q26,18 18,4 Q8,-10 -8,-2"
+        stroke="#ffffff" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.4"/>
+    </g>
+  </g>`;
+
+  // anneau de courant lumineux le long du circuit, en mouvement continu
+  html += `<circle cx="${CX}" cy="${CY}" r="${R_MID}" fill="none" stroke="${biome.accent}"
+    stroke-width="2.5" stroke-dasharray="6 14" opacity="0.45">
+    <animate attributeName="stroke-dashoffset" from="0" to="-40" dur="1.6s" repeatCount="indefinite"/>
+  </circle>`;
+
   state.feeders.forEach((fdr) => {
     const pIn = positionAtT(fdr.t, biome.sides, R_IN, 0);
     const pOut = positionAtT(fdr.t, biome.sides, R_OUT, 0);
